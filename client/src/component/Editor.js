@@ -7,49 +7,85 @@ import { initSocket } from "../socket";
 import { useNavigate,useLocation,Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 function Editor() {
-  const socketRef=useRef('NULL');
-  const location=useLocation();
-  const {roomId}=useParams();
-  const navigate=useNavigate();
-  useEffect(() =>{
-    const init=async () =>{
-      socketRef.current= await initSocket();
-      socketRef.current.on("connect_error" ,(err)=> handleError(err))
-      socketRef.current.on("connect_failed" ,(err)=> handleError(err))
-
-
-      const handleError=(e) =>{
-        console.log('socket_error=>',e)
-        toast.error("Socket connection failed");
-        navigate('/');
-      }
-      socketRef.current.emit('join',
-        {roomId,
-          username:location.state?.username
-        }); 
-      socketRef.current.on('joined',({Clients,username,socketId})=>{
-          if(username!== location.state?.username){
-            toast.success(`${username} joined`)
-          }
-          setClients(Clients)
-        })
-        socketRef.current.on("disconnected",({socketId,username})=>{
-          toast.success(`${username} left`);
-        setClients((prev) => prev.filter((client) => client.socketId !== socketId));
-        })
-    }
-    init();
-    socketRef.current.disconnect();
-    socketRef.current.off("joined");
-    socketRef.current('disconnect');
-  },[]);
-  const [clients, setClients] = useState([
+  const socketRef = useRef(null);
+  const location = useLocation();
+  const { roomId } = useParams();
+  const navigate = useNavigate();
+  const codeRef =useRef(null);
+  const [clients, setClients] = useState([]);
   
-]);
+  useEffect(() => {
+    const handleError = (err) => {
+      console.error("socket_error =>", err);
+      toast.error("Socket connection failed");
+      navigate("/");
+    };
 
-  if(!location.state){
-    return<Navigate to="/" />;
+    const init = async () => {
+      socketRef.current = await initSocket();
+
+      // error handling
+      socketRef.current.on("connect_error", handleError);
+      socketRef.current.on("connect_failed", handleError);
+
+      // join room
+      socketRef.current.emit("join", {
+        roomId,
+        username: location.state?.username,
+      });
+
+      // when someone joins
+      socketRef.current.on("joined", ({ Clients, username, socketId }) => {
+        if (username !== location.state?.username) {
+          toast.success(`${username} joined`);
+        }
+        setClients(Clients);
+        socketRef.current.emit('sync-code',{
+           code:codeRef.current,
+          socketId,
+        });
+      });
+
+      // when someone leaves
+      socketRef.current.on("disconnected", ({ socketId, username }) => {
+        toast.success(`${username} left`);
+        setClients((prev) =>
+          prev.filter((client) => client.socketId !== socketId)
+        );
+      });
+    };
+   
+
+    init();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current.off("joined");
+        socketRef.current.off("disconnected");
+        socketRef.current.off("connect_error");
+        socketRef.current.off("connect_failed");
+      }
+    };
+  }, [navigate, location.state, roomId]);
+
+  if (!location.state) {
+    return <Navigate to="/" />;
   }
+  const copyRoomId = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId);
+      toast.success(`Room ID is copied`);
+    } catch (error) {
+      console.log(error);
+      toast.error("Unable to copy the room ID");
+    }
+  };
+
+  const leaveRoom = async () => {
+    navigate("/");
+  };
+
   return (
     <div className="container-fluid vh-100 d-flex flex-column">
       <div className="row flex-grow-1">
@@ -73,10 +109,10 @@ function Editor() {
           <hr />
           {/* Buttons */}
           <div className="mt-auto mb-3">
-            <button className="btn btn-success w-100 mb-2" >
+            <button onClick={copyRoomId} className="btn btn-success w-100 mb-2">
               Copy Room ID
             </button>
-            <button className="btn btn-danger w-100" >
+            <button  onClick={leaveRoom} className="btn btn-danger w-100">
               Leave Room
             </button>
           </div>
@@ -84,14 +120,13 @@ function Editor() {
 
         {/* Editor panel */}
         <div className="col-md-10 text-light d-flex flex-column">
-          {/* Language selector */}
-          
-
-          <EditorPage />
+          <EditorPage socketRef={socketRef} roomId={roomId} onCodeChange={(code)=>{
+            codeRef.current=(code)
+          }} />
         </div>
       </div>
     </div>
   );
 }
 
-export default Editor
+export default Editor;
