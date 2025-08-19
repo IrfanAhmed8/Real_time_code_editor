@@ -29,12 +29,14 @@ function Editor() {
       socketRef.current.on("connect_failed", handleError);
 
       // join room
+      //emit sends data to the backend
       socketRef.current.emit("join", {
         roomId,
         username: location.state?.username,
       });
 
       // when someone joins
+      //data comes from the backend(socket.on).
       socketRef.current.on("joined", ({ Clients, username, socketId }) => {
         if (username !== location.state?.username) {
           toast.success(`${username} joined`);

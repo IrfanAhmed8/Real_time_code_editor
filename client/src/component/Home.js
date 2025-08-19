@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import {v4 as uuid} from "uuid";
 import { toast } from 'react-hot-toast';
 import { useNavigate } from "react-router-dom";
+
 function Home() {
   const [roomId,setRoomId]=useState("");
   const [username,setUsername]=useState("");
@@ -31,7 +32,7 @@ function Home() {
         <div className='col-12 col-md-6'>
           <div className='card shadow-sm p-2 mb-5 bg-secondary rounded'>
             <div className="card-body text-center bg-dark">
-              <img src='/public/logo512.png' 
+              <img src="/images/logo.png"
               alt='Logo'
               className='img-fluid mx-auto d-block'
               style={{maxWidth: "150px"}}
