@@ -1,0 +1,22 @@
+/* Apply only when Dracula theme is active */
+.cm-s-dracula .CodeMirror-gutters {
+  background: #1e1e1e !important;  /* match editor bg */
+  border-right: 1px solid #444 !important;
+  min-width: 50px !important;      /* reserve enough space */
+  width: 50px !important;
+}
+
+/* Ensure editor itself fills container */
+.cm-s-dracula.CodeMirror {
+  height: 100% !important;
+  background: #1e1e1e !important;
+  color: #ffffff !important;
+  font-size: 14px;
+}
+
+/* Wrapper */
+.editor-container {
+  flex-grow: 1;
+  overflow: hidden;
+  height: calc(100vh - 50px); /* full height minus top bar */
+}

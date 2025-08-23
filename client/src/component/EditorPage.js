@@ -13,9 +13,12 @@ import "codemirror/addon/edit/closebrackets";
 // Import modes
 import "codemirror/mode/javascript/javascript";
 
+
 function Editor({socketRef,roomId,onCodeChange}) {
   const textareaRef = useRef(null);
   const editorRef = useRef(null);
+  const [outputVisible, setOutputVisible] = useState(false);
+  const [language, setLanguage] = useState("python");
   const [output, setOutput] = useState("");
 
   useEffect(() => {
@@ -67,7 +70,7 @@ const runCode = async () => {
   console.log("Sending code:", code);
   try {
     const res = await axios.post("http://localhost:5000/run", {
-      language: "python",
+      language:language,
       code,
     });
     console.log("Response from backend:", res.data); //
@@ -77,18 +80,49 @@ const runCode = async () => {
     console.error("Error calling backend:", err);
     setOutput("Error running code");
   }
+  setOutputVisible(!outputVisible);
 };
 
   
   return (
-    <div style={{ height: "600px" }}>
+    <div>
+       <div className="d-flex justify-content-end align-items-center" style={{ background: "#1e1e1e"}}>
+        <span style={{marginRight:"750px"}}>CODE-MATE</span>
+            <select value={language} 
+            onChange={(e) => setLanguage(e.target.value)}
+
+             className="form-select w-auto me-2"
+              style={{ background: "#1e1e1e", color: "white", border: "1px solid #555" }}
+              >
+                <option value="python">Python</option>
+                <option value="javascript">Javascript</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+              </select>
+              <button onClick={runCode} className="btn btn-success">
+               Run ▶ 
+              </button>
+          </div>
+    <div className="editor-container">
       <textarea ref={textareaRef} id="realTimeEditor" />
       <br />
-      <button onClick={runCode}>Run</button>
-      <pre style={{ whiteSpace: "pre-wrap", background: "#1e1e1e", color: "white", padding: "10px", borderRadius: "5px" }}>
-  {output.trim()}
-</pre>
     </div>
+    {outputVisible && (
+            <div
+              style={{
+                background: "#1e1e1e",
+                color: "white",
+                padding: "10px",
+                borderTop: "2px solid #444",
+                height: "200px",
+                overflowY: "auto",
+              }}
+            >
+              <pre style={{ whiteSpace: "pre-wrap" }}>"Output /n{output.trim()}"</pre>
+            </div>
+          )}
+    </div>
+             
   );
 }
 

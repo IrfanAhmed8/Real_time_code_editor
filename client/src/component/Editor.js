@@ -6,6 +6,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { initSocket } from "../socket";
 import { useNavigate,useLocation,Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
+import "./Editor.css"
 function Editor() {
   const socketRef = useRef(null);
   const location = useLocation();
@@ -89,20 +90,20 @@ function Editor() {
   };
 
   return (
-    <div className="container-fluid vh-100 d-flex flex-column">
+    <div className="container-fluid vh-100 d-flex flex-column" >
       <div className="row flex-grow-1">
         <div className="col-md-2 bg-dark text-light d-flex flex-column">
           <img
-            src="/images/codecast.png"
+            src="/images/logo.png"
             alt="Logo"
             className="img-fluid mx-auto"
-            style={{ maxWidth: "150px", marginTop: "-43px" }}
+            style={{ maxWidth: "150px", marginTop: "0px" }}
           />
-          <hr style={{ marginTop: "-3rem" }} />
+          <hr style={{ marginTop: "2rem" }} />
 
           {/* Client list container */}
           <div className="d-flex flex-column flex-grow-1 overflow-auto">
-            <span className="mb-2">Members</span>
+            <span className="mb-2" marginTop="50px">Members</span>
             {clients.map((client) => (
               <Client key={client.socketId} username={client.username} />
             ))}
