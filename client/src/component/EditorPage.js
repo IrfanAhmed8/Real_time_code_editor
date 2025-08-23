@@ -62,16 +62,15 @@ function Editor({socketRef,roomId,onCodeChange}) {
   },[socketRef.current])
 
 const runCode = async () => {
-  console.log("Run button clicked");  // 👈 check if button works
+  console.log("Run button clicked");  
   const code = editorRef.current.getValue();
-  console.log("Sending code:", code); // 👈 check if code is being captured
-
+  console.log("Sending code:", code);
   try {
     const res = await axios.post("http://localhost:5000/run", {
       language: "python",
       code,
     });
-    console.log("Response from backend:", res.data); // 👈 debug response
+    console.log("Response from backend:", res.data); //
     setOutput(res.data.output);
     console.log("Updated output:", res.data.output);
   } catch (err) {
@@ -86,7 +85,9 @@ const runCode = async () => {
       <textarea ref={textareaRef} id="realTimeEditor" />
       <br />
       <button onClick={runCode}>Run</button>
-      <pre>{output}</pre>
+      <pre style={{ whiteSpace: "pre-wrap", background: "#1e1e1e", color: "white", padding: "10px", borderRadius: "5px" }}>
+  {output.trim()}
+</pre>
     </div>
   );
 }
