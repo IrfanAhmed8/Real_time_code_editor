@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 function Home() {
   const [roomId,setRoomId]=useState("");
   const [username,setUsername]=useState("");
+  const [isAdmin,setIsAdmin]=useState(false);
   const navigate = useNavigate();
   const generateRoomid =(e)=>{
     e.preventDefault();
@@ -18,10 +19,18 @@ function Home() {
       toast.error("please fill both input box")
       return;
     }
-    
+    if(!isAdmin){
       navigate(`/Editor/${roomId}`,{
         state:  {username},
     });
+    }
+    else {
+    // admin user
+    navigate(`/Editor/${roomId}/admin`, {
+      state: { username },
+    });
+  }
+      
     toast.success("room is created");
 
     
@@ -55,6 +64,18 @@ function Home() {
                 placeholder='Username'
                 />
               </div>
+             <div className="form-check form-switch">
+              <input
+                className="form-check-input"
+                type="checkbox"
+                id="adminSwitch"
+                checked={isAdmin}
+                onChange={() => setIsAdmin(!isAdmin)}
+              />
+              <label className="form-check-label" htmlFor="adminSwitch">
+                Join as Admin
+              </label>
+            </div>
               <button
               onClick={joinRoom}
               className='btn btn-success btn-lg btn-block'
