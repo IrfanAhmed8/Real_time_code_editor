@@ -33,12 +33,17 @@ function Editor({socketRef,roomId,onCodeChange}) {
 
       editor.setSize(null, "100%");
       editorRef.current = editor;
-
+      //using a room specific local storge.so that code doesnt persist in other room.
+       const savedCode = localStorage.getItem(`code_${roomId}`);
+if (savedCode) {
+  editor.setValue(savedCode);
+}
       editor.on("change", (instance, changes) => {
         console.log("change", instance.getValue(), changes);
         const {origin} =changes;
         const code=instance.getValue();
         onCodeChange(code)
+         localStorage.setItem(`code_${roomId}`, code);
         if(origin !=='setValue'){
           socketRef.current.emit("code-change",{
             roomId,
@@ -46,9 +51,7 @@ function Editor({socketRef,roomId,onCodeChange}) {
           })
         }
       });
-     
     }
-  
   }, []);
   useEffect(()=>{
      if(socketRef.current){
