@@ -1,132 +1,135 @@
-import React, { useEffect, useRef } from "react";
-import CodeMirror from "codemirror"; // import main library
-import { ACTIONS } from "../Action";
-import axios from "axios";
-// Import CSS first
-import "codemirror/lib/codemirror.css";
-import "codemirror/theme/dracula.css";
-import { useState } from "react";
-// Import addons
-import "codemirror/addon/edit/closetag";
-import "codemirror/addon/edit/closebrackets";
 
-// Import modes
-import "codemirror/mode/javascript/javascript";
-
-
-function Editor({socketRef,roomId,onCodeChange}) {
-  const textareaRef = useRef(null);
-  const editorRef = useRef(null);
-  const [outputVisible, setOutputVisible] = useState(false);
-  const [language, setLanguage] = useState("python");
-  const [output, setOutput] = useState("");
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      const editor = CodeMirror.fromTextArea(textareaRef.current, {
-        mode: { name: "javascript", json: true },
-        theme: "dracula",
-        autoCloseTags: true,
-        autoCloseBrackets: true,
-        lineNumbers: true,
-      });
-
-      editor.setSize(null, "100%");
-      editorRef.current = editor;
-      //using a room specific local storge.so that code doesnt persist in other room.
-       const savedCode = localStorage.getItem(`code_${roomId}`);
-if (savedCode) {
-  editor.setValue(savedCode);
-}
-      editor.on("change", (instance, changes) => {
-        console.log("change", instance.getValue(), changes);
-        const {origin} =changes;
-        const code=instance.getValue();
-        onCodeChange(code)
-         localStorage.setItem(`code_${roomId}`, code);
-        if(origin !=='setValue'){
-          socketRef.current.emit("code-change",{
-            roomId,
-            code,
-          })
-        }
-      });
-    }
-  }, []);
-  useEffect(()=>{
-     if(socketRef.current){
-      socketRef.current.on('code-change',({code})=>{
-        if(code!==null){
-          editorRef.current.setValue(code);
-        }
-      })
-    }
-    return () => {
-      socketRef.current.off(ACTIONS.CODE_CHANGE);
-    };
-    
-  },[socketRef.current])
-
-const runCode = async () => {
-  console.log("Run button clicked");  
-  const code = editorRef.current.getValue();
-  console.log("Sending code:", code);
-  try {
-    const res = await axios.post("http://localhost:5000/run", {
-      language:language,
-      code,
-    });
-    console.log("Response from backend:", res.data); //
-    setOutput(res.data.output);
-    console.log("Updated output:", res.data.output);
-  } catch (err) {
-    console.error("Error calling backend:", err);
-    setOutput("Error running code");
-  }
-  setOutputVisible(!outputVisible);
-};
-
+import Editor from "./Editor"
+import Client from "./Client"
+import { toast } from 'react-hot-toast';
+import React, { useEffect, useRef, useState } from "react";
+import { initSocket } from "../socket";
+import { useNavigate,useLocation,Navigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
+import "./Editor.css"
+function EditorPage() {
+  const socketRef = useRef(null);
+  const location = useLocation();
+  const { roomId } = useParams();
+  const navigate = useNavigate();
+  const codeRef =useRef(null);
+  const [clients, setClients] = useState([]);
   
-  return (
-    <div>
-       <div className="d-flex justify-content-end align-items-center" style={{ background: "#1e1e1e"}}>
-        <span style={{marginRight:"750px"}}>CODE-MATE</span>
-            <select value={language} 
-            onChange={(e) => setLanguage(e.target.value)}
+  useEffect(() => {
+    const handleError = (err) => {
+      console.error("socket_error =>", err);
+      toast.error("Socket connection failed");
+      navigate("/");
+    };
 
-             className="form-select w-auto me-2"
-              style={{ background: "#1e1e1e", color: "white", border: "1px solid #555" }}
-              >
-                <option value="python">Python</option>
-                <option value="javascript">Javascript</option>
-                <option value="cpp">C++</option>
-                <option value="java">Java</option>
-              </select>
-              <button onClick={runCode} className="btn btn-success">
-               Run ▶ 
-              </button>
+    const init = async () => {
+      socketRef.current = await initSocket();
+
+      // error handling
+      socketRef.current.on("connect_error", handleError);
+      socketRef.current.on("connect_failed", handleError);
+
+      // join room
+      //emit sends data to the backend
+      socketRef.current.emit("join", {
+        roomId,
+        username: location.state?.username,
+      });
+
+      // when someone joins
+      //data comes from the backend(socket.on).
+      socketRef.current.on("joined", ({ Clients, username, socketId }) => {
+        if (username !== location.state?.username) {
+          toast.success(`${username} joined`);
+        }
+        setClients(Clients);
+        socketRef.current.emit('sync-code',{
+           code:codeRef.current,
+          socketId,
+        });
+      });
+
+      // when someone leaves
+      socketRef.current.on("disconnected", ({ socketId, username }) => {
+        toast.success(`${username} left`);
+        setClients((prev) =>
+          prev.filter((client) => client.socketId !== socketId)
+        );
+      });
+    };
+   
+
+    init();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current.off("joined");
+        socketRef.current.off("disconnected");
+        socketRef.current.off("connect_error");
+        socketRef.current.off("connect_failed");
+      }
+    };
+  }, [navigate, location.state, roomId]);
+
+  if (!location.state) {
+    return <Navigate to="/" />;
+  }
+  const copyRoomId = async () => {
+    try {
+      await navigator.clipboard.writeText(roomId);
+      toast.success(`Room ID is copied`);
+    } catch (error) {
+      console.log(error);
+      toast.error("Unable to copy the room ID");
+    }
+  };
+
+  const leaveRoom = async () => {
+    navigate("/");
+  };
+
+  return (
+    <div className="container-fluid vh-100 d-flex flex-column" >
+      <div className="row flex-grow-1">
+        <div className="col-md-2 bg-dark text-light d-flex flex-column">
+          <img
+            src="/images/logo.png"
+            alt="Logo"
+            className="img-fluid mx-auto"
+            style={{ maxWidth: "150px", marginTop: "0px" }}
+          />
+          <hr style={{ marginTop: "2rem" }} />
+
+          {/* Client list container */}
+          <div className="d-flex flex-column flex-grow-1 overflow-auto">
+            <span className="mb-2" marginTop="50px">Members</span>
+            {clients.map((client) => (
+              <Client key={client.socketId} username={client.username} />
+            ))}
           </div>
-    <div className="editor-container">
-      <textarea ref={textareaRef} id="realTimeEditor" />
-      <br />
+
+          <hr />
+          {/* Buttons */}
+          <div className="mt-auto mb-3">
+            <button onClick={copyRoomId} className="btn btn-success w-100 mb-2">
+              Copy Room ID
+            </button>
+            <button  onClick={leaveRoom} className="btn btn-danger w-100">
+              Leave Room
+            </button>
+          </div>
+        </div>
+
+        {/* Editor panel */}
+        <div className="col-md-10 text-light d-flex flex-column">
+          <Editor socketRef={socketRef} roomId={roomId} onCodeChange={(code)=>{
+            codeRef.current=(code)
+          }} />
+        </div>
+      </div>
     </div>
-    {outputVisible && (
-            <div
-              style={{
-                background: "#1e1e1e",
-                color: "white",
-                padding: "10px",
-                borderTop: "2px solid #444",
-                height: "200px",
-                overflowY: "auto",
-              }}
-            >
-              <pre style={{ whiteSpace: "pre-wrap" }}>"Output /n{output.trim()}"</pre>
-            </div>
-          )}
-    </div>
-             
   );
 }
 
-export default Editor;
+export default EditorPage;

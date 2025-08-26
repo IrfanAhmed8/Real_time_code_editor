@@ -1,6 +1,6 @@
 import Home from "./component/Home";
 import {Routes,Route} from "react-router-dom";
-import Editor  from "./component/Editor";
+import Editor  from "./component/EditorPage";
 import EditorWithAdmin from "./component/EditorWithAdmin";
 import {Toaster} from "react-hot-toast";
 function App() {
