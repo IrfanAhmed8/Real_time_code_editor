@@ -1,19 +1,27 @@
 
 import Editor from "./Editor"
 import Client from "./Client"
+
+import axios from "axios";
 import { toast } from 'react-hot-toast';
 import React, { useEffect, useRef, useState } from "react";
 import { initSocket } from "../socket";
 import { useNavigate,useLocation,Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import "./Editor.css"
-function EditorPage() {
+import TopBar from "./TopBar";
+function EditorPage({ editorCount = 1, pushButton = false }) {
   const socketRef = useRef(null);
   const location = useLocation();
   const { roomId } = useParams();
   const navigate = useNavigate();
   const codeRef =useRef(null);
   const [clients, setClients] = useState([]);
+  const [code, setCode] = useState("");       // editor value
+  const [language, setLanguage] = useState("python");
+  const [output, setOutput] = useState("");
+  const [outputVisible, setOutputVisible] = useState(false);
+
   
   useEffect(() => {
     const handleError = (err) => {
@@ -88,48 +96,86 @@ function EditorPage() {
   const leaveRoom = async () => {
     navigate("/");
   };
+  const runCode = async () => {
+    console.log("Run button clicked");
+    try {
+      const res = await axios.post("http://localhost:5000/run", {
+        language,
+        code,
+      });
+      setOutput(res.data.output);
+    } catch (err) {
+      console.error("Error calling backend:", err);
+      setOutput("Error running code");
+    }
+    setOutputVisible(true);
+  };
 
-  return (
-    <div className="container-fluid vh-100 d-flex flex-column" >
-      <div className="row flex-grow-1">
-        <div className="col-md-2 bg-dark text-light d-flex flex-column">
-          <img
-            src="/images/logo.png"
-            alt="Logo"
-            className="img-fluid mx-auto"
-            style={{ maxWidth: "150px", marginTop: "0px" }}
-          />
-          <hr style={{ marginTop: "2rem" }} />
+ return (
+  <div className="container-fluid vh-100 d-flex flex-column">
+    <div className="row flex-grow-1">
+      {/* Sidebar */}
+      <div className="col-md-2 bg-dark text-light d-flex flex-column">
+        <img
+          src="/images/logo.png"
+          alt="Logo"
+          className="img-fluid mx-auto"
+          style={{ maxWidth: "150px", marginTop: "0px" }}
+        />
+        <hr style={{ marginTop: "2rem" }} />
 
-          {/* Client list container */}
-          <div className="d-flex flex-column flex-grow-1 overflow-auto">
-            <span className="mb-2" marginTop="50px">Members</span>
-            {clients.map((client) => (
-              <Client key={client.socketId} username={client.username} />
-            ))}
-          </div>
-
-          <hr />
-          {/* Buttons */}
-          <div className="mt-auto mb-3">
-            <button onClick={copyRoomId} className="btn btn-success w-100 mb-2">
-              Copy Room ID
-            </button>
-            <button  onClick={leaveRoom} className="btn btn-danger w-100">
-              Leave Room
-            </button>
-          </div>
+        {/* Client list container */}
+        <div className="d-flex flex-column flex-grow-1 overflow-auto">
+          <span className="mb-2" marginTop="50px">Members</span>
+          {clients.map((client) => (
+            <Client key={client.socketId} username={client.username} />
+          ))}
         </div>
 
-        {/* Editor panel */}
-        <div className="col-md-10 text-light d-flex flex-column">
-          <Editor socketRef={socketRef} roomId={roomId} onCodeChange={(code)=>{
-            codeRef.current=(code)
-          }} />
+        <hr />
+        {/* Buttons */}
+        <div className="mt-auto mb-3">
+          <button onClick={copyRoomId} className="btn btn-success w-100 mb-2">
+            Copy Room ID
+          </button>
+          <button onClick={leaveRoom} className="btn btn-danger w-100">
+            Leave Room
+          </button>
+        </div>
+      </div>
+
+      {/* Main panel */}
+      <div className="col-md-10 text-light d-flex flex-column">
+        {/* Top bar stays on top */}
+        <TopBar
+          language={language}
+          setLanguage={setLanguage}
+          runCode={runCode}
+          pushButton={pushButton}
+        />
+
+        {/* Editors below top bar */}
+        <div className="d-flex flex-row flex-grow-1">
+          {Array.from({ length: editorCount }).map((_, i) => (
+            <div
+              key={i}
+              className="d-flex flex-column flex-fill border-start"
+              style={{ minWidth: 0 }}
+            >
+              <Editor
+                socketRef={socketRef}
+                roomId={`${roomId}-editor${i}`}
+                onCodeChange={setCode}
+                output={output}
+                outputVisible={outputVisible}
+              />
+            </div>
+          ))}
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 }
 
 export default EditorPage;

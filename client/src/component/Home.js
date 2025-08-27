@@ -26,7 +26,7 @@ function Home() {
     }
     else {
     // admin user
-    navigate(`/Editor/${roomId}/admin`, {
+    navigate(`/EditorWithAdmin/${roomId}`, {
       state: { username },
     });
   }
