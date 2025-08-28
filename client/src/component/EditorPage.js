@@ -112,72 +112,67 @@ function EditorPage() {
     }
     setOutputVisible(true);
   };
+return(
+<div className="container-fluid vh-100 d-flex flex-column bg-dark">
+  <div className="row flex-grow-1">
 
- return (
-  <div className="container-fluid vh-100 d-flex flex-column">
-    <div className="row flex-grow-1">
-      {/* Sidebar */}
-      <div className="col-md-2 bg-dark text-light d-flex flex-column">
-        <img
-          src="/images/logo.png"
-          alt="Logo"
-          className="img-fluid mx-auto"
-          style={{ maxWidth: "150px", marginTop: "0px" }}
-        />
-        <hr style={{ marginTop: "2rem" }} />
+    {/* Sidebar */}
+    <div className="col-md-2 bg-dark text-light d-flex flex-column border-end">
+      {/* Logo */}
+      <img
+        src="/images/logo.png"
+        alt="Logo"
+        className="img-fluid mx-auto my-3"
+        style={{ maxWidth: "120px" }}
+      />
+      <hr className="border-secondary" />
 
-        {/* Client list container */}
-        <div className="d-flex flex-column flex-grow-1 overflow-auto">
-          <span className="mb-2" marginTop="50px">Members</span>
-          {clients.map((client) => (
-            <Client key={client.socketId} username={client.username} />
-          ))}
-        </div>
-
-        <hr />
-        {/* Buttons */}
-        <div className="mt-auto mb-3">
-          <button onClick={copyRoomId} className="btn btn-success w-100 mb-2">
-            Copy Room ID
-          </button>
-          <button onClick={leaveRoom} className="btn btn-danger w-100">
-            Leave Room
-          </button>
-        </div>
+      {/* Client list */}
+      <div className="d-flex flex-column flex-grow-1 overflow-auto px-2">
+        <span className="fw-semibold d-block mb-2">Members</span>
+        {clients.map((client) => (
+          <Client key={client.socketId} username={client.username} />
+        ))}
       </div>
 
-      {/* Main panel */}
-      <div className="col-md-10 text-light d-flex flex-column">
-        {/* Top bar stays on top */}
-        <TopBar
-          language={language}
-          setLanguage={setLanguage}
-          runCode={runCode}
-        
-        />
+      <hr className="border-secondary" />
 
-        {/* Editors below top bar */}
-<div className="d-flex flex-row flex-grow-1">
-    <div
-      className="d-flex flex-column flex-fill border-start"
-      style={{ minWidth: 0 }}
-    >
-      <Editor
-        socketRef={socketRef}
-        roomId={`${roomId}`}
-        onCodeChange={setCode}
-        output={output}
-        outputVisible={outputVisible}
-       />
+      {/* Buttons */}
+      <div className="mt-auto mb-3 px-2">
+        <button onClick={copyRoomId} className="btn btn-outline-light w-100 mb-2">
+          Copy Room ID
+        </button>
+        <button onClick={leaveRoom} className="btn btn-danger w-100">
+          Leave Room
+        </button>
+      </div>
     </div>
-  ))}
-</div>
 
-         
+    {/* Main panel */}
+    <div className="col-md-10 text-light d-flex flex-column p-0">
+      {/* TopBar */}
+      <TopBar
+        language={language}
+        setLanguage={setLanguage}
+        runCode={runCode}
+      />
+
+      {/* Editor Area */}
+      <div className="d-flex flex-row flex-grow-1">
+        <div className="d-flex flex-column flex-fill border-start" style={{ minWidth: 0 }}>
+          <Editor
+            socketRef={socketRef}
+            roomId={`${roomId}`}
+            onCodeChange={setCode}
+            output={output}
+            outputVisible={outputVisible}
+          />
+        </div>
       </div>
     </div>
   </div>
-);
+</div>
+)
 }
 
 export default EditorPage;

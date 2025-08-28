@@ -15,7 +15,7 @@ import "codemirror/addon/edit/closebrackets";
 import "codemirror/mode/javascript/javascript";
 
 
-function Editor({socketRef, roomId, onCodeChange, outputVisible, output, readOnly}) {
+function Editor({socketRef, roomId, onCodeChange, outputVisible, output}) {
   const textareaRef = useRef(null);
   //editorref is used to detect change on the ediotr
   const editorRef = useRef(null);
@@ -28,7 +28,7 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output, readOnl
       autoCloseTags: true,
       autoCloseBrackets: true,
       lineNumbers: true,
-      readOnly: readOnly ? "nocursor" : false,
+     
     });
 
     editor.setSize("100%", "100%");
@@ -50,7 +50,7 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output, readOnl
       }
     });
   }
-}, [roomId,readOnly]);
+}, [roomId]);
 
 useEffect(() => {
   if (socketRef.current) {
@@ -72,25 +72,36 @@ useEffect(() => {
 }, [roomId]);
 
 
-  return (
-    <div>   
-      <div className="editor-container">
-        <textarea ref={textareaRef} id="realTimeEditor" />
-      </div>
-      {outputVisible && (
-        <div style={{
-          background: "#1e1e1e",
+return (
+  <div className="editor-container d-flex flex-column flex-grow-1">
+    {/* Code Editor */}
+    <textarea
+      ref={textareaRef}
+      id="realTimeEditor"
+      className="flex-grow-1 w-100 border-0 p-2"
+      style={{ background: "#1e1e1e", color: "white" }}
+    />
+
+    {/* Output */}
+    {outputVisible && (
+      <div
+        style={{
+          background: "#121212",
           color: "white",
-          padding: "10px",
-          borderTop: "2px solid #444",
+          padding: "12px",
+          borderTop: "2px solid #333",
           height: "200px",
           overflowY: "auto",
-        }}>
-          <pre style={{ whiteSpace: "pre-wrap" }}>Output:\n{output.trim()}</pre>
-        </div>
-      )}
-    </div>
-  );
+        }}
+      >
+        <pre style={{ whiteSpace: "pre-wrap", margin: 0 }}>
+          Output:{"\n"}{output.trim()}
+        </pre>
+      </div>
+    )}
+  </div>
+);
+
 }
 
 export default Editor;
