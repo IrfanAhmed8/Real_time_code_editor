@@ -1,7 +1,7 @@
 import Home from "./component/Home";
 import {Routes,Route} from "react-router-dom";
 import EditorPage  from "./component/EditorPage";
-import EditorWithAdmin from "./component/EditorWithAdmin";
+
 import {Toaster} from "react-hot-toast";
 function App() {
   return (
@@ -9,8 +9,8 @@ function App() {
     <Toaster position="top-center"></Toaster>
     <Routes>
     <Route path="/" element={<Home />} />
-    <Route path="/Editor/:roomId" element={<EditorPage editorCount={1} pushButton={false} />} />
-    <Route path="/EditorWithAdmin/:roomId" element={<EditorPage editorCount={2} pushButton={true} />}/>
+    <Route path="/EditorPage/:roomId" element={<EditorPage   />} />
+    <Route path="/EditorWithAdmin/:roomId" element={<EditorPage  />}/>
    </Routes>
    </>
    

@@ -10,19 +10,23 @@ import { useNavigate,useLocation,Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import "./Editor.css"
 import TopBar from "./TopBar";
-function EditorPage({ editorCount = 1, pushButton = false }) {
+function EditorPage() {
   const socketRef = useRef(null);
   const location = useLocation();
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const codeRef =useRef(null);
+  const codeRef = useRef("");
   const [clients, setClients] = useState([]);
-  const [code, setCode] = useState("");       // editor value
+  const [code, setCode] = useState("");
   const [language, setLanguage] = useState("python");
   const [output, setOutput] = useState("");
   const [outputVisible, setOutputVisible] = useState(false);
 
-  
+  // Update codeRef whenever code changes
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
+//error handling
   useEffect(() => {
     const handleError = (err) => {
       console.error("socket_error =>", err);
@@ -33,31 +37,30 @@ function EditorPage({ editorCount = 1, pushButton = false }) {
     const init = async () => {
       socketRef.current = await initSocket();
 
-      // error handling
       socketRef.current.on("connect_error", handleError);
       socketRef.current.on("connect_failed", handleError);
 
-      // join room
-      //emit sends data to the backend
       socketRef.current.emit("join", {
         roomId,
         username: location.state?.username,
       });
-
-      // when someone joins
-      //data comes from the backend(socket.on).
-      socketRef.current.on("joined", ({ Clients, username, socketId }) => {
+      //this is for a toast about the user joined
+      socketRef.current.on("joined", ({ clients, username, socketId }) => {
         if (username !== location.state?.username) {
           toast.success(`${username} joined`);
         }
-        setClients(Clients);
-        socketRef.current.emit('sync-code',{
-           code:codeRef.current,
-          socketId,
-        });
+        //it is used for diplaying them in the side bar.
+        setClients(clients);
+        
+        //when someone enter
+        if (codeRef.current) {
+          socketRef.current.emit('sync-code', {
+            code: codeRef.current,
+            socketId,
+          });
+        }
       });
 
-      // when someone leaves
       socketRef.current.on("disconnected", ({ socketId, username }) => {
         toast.success(`${username} left`);
         setClients((prev) =>
@@ -65,7 +68,6 @@ function EditorPage({ editorCount = 1, pushButton = false }) {
         );
       });
     };
-   
 
     init();
 
@@ -151,27 +153,27 @@ function EditorPage({ editorCount = 1, pushButton = false }) {
           language={language}
           setLanguage={setLanguage}
           runCode={runCode}
-          pushButton={pushButton}
+        
         />
 
         {/* Editors below top bar */}
-        <div className="d-flex flex-row flex-grow-1">
-          {Array.from({ length: editorCount }).map((_, i) => (
-            <div
-              key={i}
-              className="d-flex flex-column flex-fill border-start"
-              style={{ minWidth: 0 }}
-            >
-              <Editor
-                socketRef={socketRef}
-                roomId={`${roomId}-editor${i}`}
-                onCodeChange={setCode}
-                output={output}
-                outputVisible={outputVisible}
-              />
-            </div>
-          ))}
-        </div>
+<div className="d-flex flex-row flex-grow-1">
+    <div
+      className="d-flex flex-column flex-fill border-start"
+      style={{ minWidth: 0 }}
+    >
+      <Editor
+        socketRef={socketRef}
+        roomId={`${roomId}`}
+        onCodeChange={setCode}
+        output={output}
+        outputVisible={outputVisible}
+       />
+    </div>
+  ))}
+</div>
+
+         
       </div>
     </div>
   </div>

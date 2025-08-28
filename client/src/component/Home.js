@@ -20,7 +20,7 @@ function Home() {
       return;
     }
     if(!isAdmin){
-      navigate(`/Editor/${roomId}`,{
+      navigate(`/EditorPage/${roomId}`,{
         state:  {username},
     });
     }

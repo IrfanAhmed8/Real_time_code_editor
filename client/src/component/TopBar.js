@@ -20,11 +20,7 @@ function topBar({ language, setLanguage, runCode,pushButton }) {
               <button onClick={runCode} className="btn btn-success">
                Run ▶ 
               </button>
-              {pushButton && (
-        <button className="btn btn-warning">
-          Push ⬆
-        </button>
-      )}
+            
           </div>
     </div>
   )
