@@ -81,11 +81,37 @@ function EditorWithAdmin() {
         lineNumbers: true,
        
       });
+      editorRef.current=editor
     }
-  })
+  },[])
+  useEffect(() => {
+  if (!socketRef.current) return;
+
+  socketRef.current.on("push-request", ({ username }) => {
+    toast.success(`${username} just pushed code 🚀`);
+  });
+
+  return () => {
+    socketRef.current.off("push-request");
+  };
+}, [socketRef.current]);
+
+
   const leaveRoom = async () => {
     navigate("/");
   };
+  const pushCode=async ()=>{
+    
+    if(socketRef.current && editorRef.current){
+      console.log("clicked")
+      socketRef.current.emit("push-request",{
+        username:location.state?.username,
+        code:editorRef.current.getValue(),
+        roomId
+      })
+      toast.success("code pushed");
+    }
+  }
   return (
   <div className="bg-dark text-light vh-100 d-flex flex-column">
 
@@ -108,13 +134,15 @@ function EditorWithAdmin() {
           <option value="java">Java</option>
         </select>
 
-        <button className="btn btn-warning btn-sm">
+        <button onClick={()=>{
+          navigate(`/EditorWthAdmin/push_request/${roomId}`)
+        }}className="btn btn-warning btn-sm">
           Push Request
         </button>
         <button className="btn btn-success btn-sm">
           Run ▶
         </button>
-        <button className="btn btn-primary btn-sm">
+        <button onClick={pushCode} className="btn btn-primary btn-sm">
           Push
         </button>
       </div>
