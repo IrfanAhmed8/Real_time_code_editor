@@ -18,26 +18,27 @@ function Push_request() {
     };
 
     const init = async () => {
-      // 1️⃣ fetch existing pushes from DB
       try {
-        const res = await axios.get(`http://localhost:5000/api/pushRequest/${roomId}`);
-        setPushCodes(res.data); // preload from DB
+        // 1️⃣ Fetch existing pushes from DB
+        const res = await axios.get(
+          `http://localhost:5000/api/pushRequest/${roomId}`
+        );
+        setPushCodes(res.data);
       } catch (err) {
         console.error("Error fetching push requests:", err);
       }
 
-      // 2️⃣ connect socket
+    
       socketRef.current = await initSocket();
 
       socketRef.current.on("connect_error", handleError);
       socketRef.current.on("connect_failed", handleError);
 
-      // 3️⃣ listen for updates from server
+      // Listen for updates
       socketRef.current.on("get-push-request", (codes) => {
         setPushCodes(codes);
       });
 
-      // optionally join the room so you only get relevant updates
       socketRef.current.emit("join", roomId);
     };
 
@@ -50,17 +51,63 @@ function Push_request() {
     };
   }, [roomId, navigate]);
 
+  const handleAccept = (id) => {
+    toast.success(`Accepted push request ${id}`);
+    // later you can emit socket or API call
+  };
+
+  const handleReject = (id) => {
+    toast.error(`Rejected push request ${id}`);
+    // later you can emit socket or API call
+  };
+
   return (
-    <div>
-      <h2>Push Requests in Room {roomId}</h2>
-      <ul>
-        {pushCodes.map((item, idx) => (
-          <li key={idx}>
-            <strong>{item.username}:</strong>
-            <pre>{item.code}</pre>
-          </li>
-        ))}
-      </ul>
+    <div className="flex h-screen">
+      {/* Left Side - Push Requests */}
+      <div className="w-1/2 p-4 bg-gray-50 border-r border-gray-300 overflow-y-auto">
+        <h2 className="text-xl font-bold mb-4">
+          Push Requests in Room {roomId}
+        </h2>
+        <div className="space-y-4">
+          {pushCodes.map((item, idx) => (
+            <div
+              key={idx}
+              className="p-4 bg-white shadow-md rounded-lg border border-gray-200"
+            >
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-semibold text-blue-600">
+                  {item.username}
+                </span>
+                <div className="space-x-2">
+                  <button
+                    onClick={() => handleAccept(item._id || idx)}
+                    className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
+                  >
+                    Accept
+                  </button>
+                  <button
+                    onClick={() => handleReject(item._id || idx)}
+                    className="px-3 py-1 bg-red-500 text-white text-sm rounded hover:bg-red-600"
+                  >
+                    Reject
+                  </button>
+                </div>
+              </div>
+              <pre className="bg-gray-100 p-2 rounded text-sm overflow-x-auto">
+                {item.code}
+              </pre>
+            </div>
+          ))}
+          {pushCodes.length === 0 && (
+            <p className="text-gray-500 italic">No push requests yet.</p>
+          )}
+        </div>
+      </div>
+
+      
+      <div className="w-1/2 p-4 flex items-center justify-center text-gray-400">
+        <p>👨‍💻 Code Viewer will appear here...</p>
+      </div>
     </div>
   );
 }

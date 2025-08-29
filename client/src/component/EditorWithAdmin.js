@@ -87,14 +87,15 @@ function EditorWithAdmin() {
   useEffect(() => {
   if (!socketRef.current) return;
 
-  socketRef.current.on("push-request", ({ username }) => {
+  socketRef.current.on("push-notification", ({ username }) => {
     toast.success(`${username} just pushed code 🚀`);
   });
 
   return () => {
-    socketRef.current.off("push-request");
+    socketRef.current.off("push-notification");
   };
-}, [socketRef.current]);
+}, []);
+
 
 
   const leaveRoom = async () => {
