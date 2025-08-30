@@ -10,6 +10,7 @@
     "axios": "^1.11.0",
     "bootstrap": "^5.3.7",
     "codemirror": "^5.65.15",
+    "diff": "^8.0.2",
     "react": "^19.1.1",
     "react-avatar": "^5.0.4",
     "react-dom": "^19.1.1",

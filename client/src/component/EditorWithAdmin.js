@@ -4,6 +4,7 @@ import "codemirror/lib/codemirror.css";
 import "codemirror/theme/dracula.css";
 import { initSocket } from "../socket";
 import Client from './Client';
+import { diffWords } from "diff";
 
 import { useNavigate,useLocation,Navigate,useParams } from "react-router-dom";
 // Import addons
@@ -22,6 +23,9 @@ function EditorWithAdmin() {
     const navigate=useNavigate();
     const location = useLocation();
     const[clients,setClients]=useState([]);
+    //used rendering colour 
+    const [diffHtml, setDiffHtml] = useState("");
+    const [diffEditor,setdiffEditor]=useState("hi my nameis irfan .i am currently preparing myself for an interview")
     //editorref is used to detect change on the ediotr
     const editorRef = useRef(null);
     useEffect(()=>{
@@ -81,7 +85,30 @@ function EditorWithAdmin() {
         lineNumbers: true,
        
       });
+       const savedCode = localStorage.getItem(`code_${roomId}`);
+    if (savedCode) {
+      editor.setValue(savedCode);
+    }
       editorRef.current=editor
+      editor.on("change", (instance, changes) => {
+      const { origin } = changes;
+      const code = instance.getValue();
+      localStorage.setItem(`code_${roomId}`, code);
+      const diff = diffWords(diffEditor, code);
+
+        // Turn into HTML
+        const formatted = diff
+          .map((part) => {
+            if (part.added) return `<span style="background:#355e3b;">${part.value}</span>`;
+            if (part.removed) return `<span style="background:#8b0000;">${part.value}</span>`;
+            return `<span>${part.value}</span>`;
+          })
+          .join("");
+
+        setDiffHtml(formatted);
+
+     
+    });
     }
   },[])
   useEffect(() => {
@@ -186,18 +213,15 @@ function EditorWithAdmin() {
       </div>
 
       {/* Diff Column */}
-      <div className="col-md-4 d-flex flex-column border-start">
+      {/* Diff Column */}
+<div className="col-md-6 d-flex flex-column border-start">
         <div
-          className="diff-viewer flex-grow-1"
-          style={{
-            background: "#f8f9fa",
-            padding: "10px",
-            overflow: "auto",
-          }}
-        >
-          Diff Column
-        </div>
+          className="flex-grow-1 w-100 p-2"
+          style={{ background: "#1e1e1e", color: "white", whiteSpace: "pre-wrap" }}
+          dangerouslySetInnerHTML={{ __html: diffHtml }}
+        />
       </div>
+
     </div>
   </div>
 );
