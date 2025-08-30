@@ -50,6 +50,7 @@ function EditorWithAdmin() {
           toast.success(`${username} joined`)
         }
         setClients(clients);
+     
       })
       socketRef.current.on("disconnected", ({ socketId, username }) => {
         toast.success(`${username} left`);
@@ -85,11 +86,16 @@ function EditorWithAdmin() {
         lineNumbers: true,
        
       });
-       const savedCode = localStorage.getItem(`code_${roomId}`);
-    if (savedCode) {
-      editor.setValue(savedCode);
-    }
       editorRef.current=editor
+      const savedCode = localStorage.getItem(`code_${roomId}`);
+if (savedCode) {
+  editor.setValue(savedCode);
+} else {
+  editor.setValue(diffEditor);   
+  localStorage.setItem(`code_${roomId}`, diffEditor);
+}
+
+      
       editor.on("change", (instance, changes) => {
       const { origin } = changes;
       const code = instance.getValue();
@@ -110,7 +116,7 @@ function EditorWithAdmin() {
      
     });
     }
-  },[])
+  },[roomId,diffEditor])
   useEffect(() => {
   if (!socketRef.current) return;
 
