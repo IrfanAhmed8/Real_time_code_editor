@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const mongoose=require("mongoose")
 const cors = require("cors");   // 👈 import cors
 app.use(cors());                // 👈 allow all origins by default
 app.use(express.json()) // to parse JSON requests
@@ -8,13 +9,46 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const { exec } = require("child_process");
 const fs = require("fs");
+const { type } = require("os");
+mongoose.connect("mongodb://127.0.0.1:27017/realtime_editor")
+.then(()=> console.log("MongoDb connected"))
+.catch((err)=> console.log("MongoDb",err))
 
+//schema
+const pushRequests=new mongoose.Schema({
+    roomId:{
+      type:String,
+      required:true,
+    },
+    username:{
+      type:String,
+    },
+    code:{
+      type:String,
+      required:true,
+    }
+})
+
+const Push=mongoose.model('pushRequest',pushRequests)
+//first one is collection name ,second is schema name
 const io = new Server(server, {
   cors: {
     origin: "http://192.168.0.100:3000", 
     methods: ["GET", "POST"],
   },
 });
+//for postman
+// Get pushes for a specific room
+app.get("/api/pushRequest/:roomId", async (req, res) => {
+  try {
+    const { roomId } = req.params;
+    const pushes = await Push.find({ roomId }); // filter by roomId
+    res.json(pushes);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 const ACTIONS = {
   JOIN: "join",
@@ -22,9 +56,11 @@ const ACTIONS = {
   DISCONNECTED: "disconnected",
   CODE_CHANGE: "code-change",
   SYNC_CODE: "sync-code",
+  PUSH_REQUEST:"push-request",
 };
 
 const userSocketMap = {};
+//to get all the socket id there in that group
 const getAllConnectedClients=(roomId)=>{
   return Array.from(io.sockets.adapter.rooms.get(roomId) || [] ).map(
     (socketId)=>{
@@ -40,40 +76,61 @@ const getAllConnectedClients=(roomId)=>{
 
 //list of activities to be done when a connection is made
 //connection is in-built word in library
-io.on("connection",(socket)=>{
-  //making socket connection when user clicks on join.
-    console.log(`User connected : ${socket.id}`);
-    //join,code-sync are user defined.
-    socket.on('join',({roomId,username})=>{
-      userSocketMap[socket.id]=username;
-      socket.join(roomId);
-      const Clients=getAllConnectedClients(roomId);
-      Clients.forEach(({socketId})=>{
-        io.to(socketId).emit("joined",{
-          Clients,
-          username,
-          socketId: socket.id,
-        })
-      })
-    })
-    socket.on("code-change",({roomId,code})=>{
-      socket.in(roomId).emit("code-change",{code});
-    })
-     socket.on('sync-code', ({ socketId, code }) => {
+
+io.on("connection", (socket) => {
+  console.log(`User connected : ${socket.id}`);
+  
+  socket.on('join', ({roomId, username}) => {
+    userSocketMap[socket.id] = username;
+    socket.join(roomId);
+    const clients = getAllConnectedClients(roomId);
+    
+    clients.forEach(({socketId}) => {
+      io.to(socketId).emit("joined", {
+        clients, // Fixed typo: should be clients not Clients
+        username,
+        socketId: socket.id,
+      });
+
+    });
+  });
+  
+  socket.on("code-change", ({roomId, code}) => {
+    socket.to(roomId).emit("code-change", {code}); // Use socket.to instead of socket.in
+  });
+  
+  socket.on('sync-code', ({ socketId, code }) => {
     io.to(socketId).emit('code-change', { code });
   });
-    socket.on("disconnecting",()=>{
-      const rooms= [...socket.rooms];
-      rooms.forEach((roomId)=>{
-        socket.in(roomId).emit("disconnected",{
-          socketId:socket.id,
-          username:userSocketMap[socket.id],
-        })
-      })
-      console.log("user disconnected")
-      delete userSocketMap[socket.id]
-      socket.leave();
-    })
+  socket.on("push-request", async ({ username, code, roomId }) => {
+  try {
+    await Push.create({ roomId, username, code });
+
+    const codesWithUsernames = await Push.find({ roomId });
+
+    // Broadcast a new push notification separately
+    io.to(roomId).emit("push-notification", { username });
+
+    // Send updated list
+    io.to(roomId).emit("get-push-request", codesWithUsernames);
+  } catch (err) {
+    console.error("Error handling push-request:", err);
+  }
+});
+
+
+  
+  socket.on("disconnecting", () => {
+    const rooms = [...socket.rooms];
+    rooms.forEach((roomId) => {
+      socket.to(roomId).emit("disconnected", {
+        socketId: socket.id,
+        username: userSocketMap[socket.id],
+      });
+    });
+    delete userSocketMap[socket.id];
+    
+  });
 });
 
 
