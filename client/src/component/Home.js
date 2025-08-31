@@ -36,67 +36,84 @@ function Home() {
     
   }
   return (
-    <div className='container-fluid'>
-      <div className="row justify-content-center align-items-center min-vh-100">
-        <div className='col-12 col-md-6'>
-          <div className='card shadow-sm p-2 mb-5 bg-secondary rounded'>
-            <div className="card-body text-center bg-dark">
-              <img src="/images/logo.png"
-              alt='Logo'
-              className='img-fluid mx-auto d-block'
-              style={{maxWidth: "150px"}}
-              />
-              <h4 className="card-title text-light mb-4">Enter the ROOM ID</h4>
-              <div className="form-group">
-                <input
-                value={roomId}
-                onChange={(e)=>setRoomId(e.target.value)}
-                  type="text"
-                  className="form-control mb-2"
-                  placeholder="ROOM ID"
-                />
-              </div>
-              <div className='form-group'>
-                <input type='text'
-                 value={username}
-                onChange={(e)=>setUsername(e.target.value)}
-                className='form-control mb-2'
-                placeholder='Username'
-                />
-              </div>
-             <div className="form-check form-switch">
-              <input
-                className="form-check-input"
-                type="checkbox"
-                id="adminSwitch"
-                checked={isAdmin}
-                onChange={() => setIsAdmin(!isAdmin)}
-              />
-              <label className="form-check-label" htmlFor="adminSwitch">
-                Join as Admin
-              </label>
-            </div>
-              <button
-              onClick={joinRoom}
-              className='btn btn-success btn-lg btn-block'
-              >Join</button>
-               <p className="mt-3 text-light">
-                Don't have a room ID? 
-                <span
-                  className=" text-success p-2"
-                  style={{ cursor: "pointer" }}
-                  onClick={generateRoomid}
-                >
-                  
-                  New Room
-                </span>
-              </p>
-            </div>
-          </div>
+  <div className="d-flex align-items-center justify-content-center min-vh-100 bg-dark text-light">
+    <div className="card shadow-lg border-0 p-4 rounded-4" style={{ background: "linear-gradient(145deg, #1f1f1f, #2a2a2a)" }}>
+      <div className="card-body text-center">
+        
+        {/* Logo */}
+        <img
+          src="/images/logo.png"
+          alt="Logo"
+          className="img-fluid mx-auto d-block mb-3"
+          style={{ maxWidth: "120px", filter: "drop-shadow(0px 0px 6px #00ff88)" }}
+        />
+
+        {/* Title */}
+        <h3 className="fw-bold text-success mb-4">Join a Coding Room</h3>
+
+        {/* Room ID */}
+        <div className="form-group mb-3">
+          <input
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            type="text"
+            className="form-control form-control-lg bg-dark text-light border-0 shadow-sm"
+            style={{ borderRadius: "12px", boxShadow: "inset 0 0 10px #111" }}
+            placeholder="🔑 Enter Room ID"
+          />
         </div>
+
+        {/* Username */}
+        <div className="form-group mb-3">
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="form-control form-control-lg bg-dark text-light border-0 shadow-sm"
+            style={{ borderRadius: "12px", boxShadow: "inset 0 0 10px #111" }}
+            placeholder="👨‍💻 Enter Username"
+          />
+        </div>
+
+        {/* Admin Switch */}
+        <div className="form-check form-switch d-flex align-items-center justify-content-center mb-4">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="adminSwitch"
+            checked={isAdmin}
+            onChange={() => setIsAdmin(!isAdmin)}
+          />
+          <label className="form-check-label ms-2" htmlFor="adminSwitch">
+            Join as Admin
+          </label>
+        </div>
+
+        {/* Join Button */}
+        <button
+          onClick={joinRoom}
+          className="btn btn-success btn-lg w-100 fw-bold"
+          style={{ borderRadius: "12px", boxShadow: "0 0 15px rgba(0, 255, 136, 0.6)" }}
+        >
+          🚀 Join Room
+        </button>
+
+        {/* New Room */}
+        <p className="mt-4">
+          Don’t have a room?{" "}
+          <span
+            className="text-info fw-bold"
+            style={{ cursor: "pointer", textDecoration: "underline" }}
+            onClick={generateRoomid}
+          >
+            Create New Room
+          </span>
+        </p>
       </div>
     </div>
-  )
+  </div>
+);
+
 }
 
 export default Home;

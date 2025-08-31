@@ -60,6 +60,12 @@ function Push_request() {
     toast.error(`Rejected push request ${id}`);
     // later you can emit socket or API call
   };
+  const addToDiff=(item)=>{
+    socketRef.current.emit("addToDiff",{
+      code:item.code,
+      roomId    
+    })
+  }
 
   return (
     <div className="flex h-screen">
@@ -80,7 +86,7 @@ function Push_request() {
                 </span>
                 <div className="space-x-2">
                   <button
-                    onClick={() => handleAccept(item._id || idx)}
+                    onClick={()=>addToDiff(item)}
                     className="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600"
                   >
                     Accept
