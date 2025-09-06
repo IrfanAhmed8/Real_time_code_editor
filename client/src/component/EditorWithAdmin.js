@@ -25,7 +25,7 @@ function EditorWithAdmin() {
     const[clients,setClients]=useState([]);
     //used rendering colour 
     const [diffHtml, setDiffHtml] = useState("");
-    const [diffEditor,setdiffEditor]=useState("hi my nameis irfan .i am currently preparing myself for an interview")
+    const [diffEditor,setdiffEditor]=useState("")
     //editorref is used to detect change on the ediotr
     const editorRef = useRef(null);
     useEffect(()=>{
@@ -73,6 +73,19 @@ function EditorWithAdmin() {
       }
      }
     },[navigate, location.state, roomId])
+
+    useEffect(() => {
+  if (!socketRef.current) return;
+  
+  socketRef.current.on("setDiffEditor", (setDiffEditorCode) => {
+    setdiffEditor(setDiffEditorCode);
+  },diffEditor);
+
+  return () => {
+    socketRef.current.off("setDiffEditor");
+  };
+}, []);
+
    
    
     useEffect(() => {
