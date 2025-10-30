@@ -134,7 +134,7 @@ function Home() {
           e.currentTarget.style.boxShadow = "0 0 12px #00ff8855";
         }}
       >
-        🚀 Join Room
+         Join Room
       </button>
 
       {/* Create New Room */}
