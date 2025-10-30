@@ -21,6 +21,9 @@ function EditorPage() {
   const [language, setLanguage] = useState("python");
   const [output, setOutput] = useState("");
   const [outputVisible, setOutputVisible] = useState(false);
+  const [version, setVersion] = useState("*");
+  const [isCooldown, setIsCooldown] = useState(false);
+  
 
   // Update codeRef whenever code changes
   useEffect(() => {
@@ -67,12 +70,17 @@ function EditorPage() {
           prev.filter((client) => client.socketId !== socketId)
         );
       });
+      socketRef.current.on("code-output", (data) => {
+        setOutputVisible(true);
+        setOutput(data);
+      });
     };
 
     init();
 
     return () => {
       if (socketRef.current) {
+        socketRef.current.off("code-output");
         socketRef.current.disconnect();
         socketRef.current.off("joined");
         socketRef.current.off("disconnected");
@@ -98,81 +106,126 @@ function EditorPage() {
   const leaveRoom = async () => {
     navigate("/");
   };
-  const runCode = async () => {
-    console.log("Run button clicked");
-    try {
-      const res = await axios.post("http://localhost:5000/run", {
-        language,
-        code,
-      });
-      setOutput(res.data.output);
-    } catch (err) {
-      console.error("Error calling backend:", err);
-      setOutput("Error running code");
+  const runCode = () => {
+    if (isCooldown) {
+      toast.success("Is too many requests. Please wait...  10 seconds cooldown.");
+      return;
     }
-    setOutputVisible(true);
+
+    // Emit the event
+    socketRef.current.emit("Complile-and-run", {
+      language,
+      code,
+      roomId,
+      version,
+    });
+
+    // Start cooldown
+    setIsCooldown(true);
+    
+
+    setTimeout(() => {
+      setIsCooldown(false);
+     
+    }, 10000); // 10 seconds
   };
-return(
-<div className="container-fluid vh-100 d-flex flex-column bg-dark">
-  <div className="row flex-grow-1">
+return (
+  <div
+    className="container-fluid vh-100 d-flex flex-column p-0"
+    style={{
+      backgroundColor: "#0d1117",
+      color: "#f0f6fc",
+      overflow: "hidden",
+    }}
+  >
+    {/* ===== TopBar (full width) ===== */}
+    <TopBar language={language} setLanguage={setLanguage} runCode={runCode} />
 
-    {/* Sidebar */}
-    <div className="col-md-2 bg-dark text-light d-flex flex-column border-end">
-      {/* Logo */}
-      <img
-        src="/images/logo.png"
-        alt="Logo"
-        className="img-fluid mx-auto my-3"
-        style={{ maxWidth: "120px" }}
-      />
-      <hr className="border-secondary" />
+    {/* ===== Main Body (Sidebar + Editor) ===== */}
+    <div className="flex-grow-1 d-flex" style={{ minHeight: 0 }}>
+      {/* Sidebar */}
+      <aside
+        className="d-flex flex-column border-end"
+        style={{
+          width: "240px",
+          backgroundColor: "#161b22",
+          borderColor: "#30363d",
+        }}
+      >
+        {/* Logo */}
+        <div className="text-center py-3 border-bottom border-secondary">
+          <img
+            src="/images/logo.png"
+            alt="Logo"
+            className="img-fluid"
+            style={{
+              maxWidth: "100px",
+              filter: "drop-shadow(0 0 6px #00ff88aa)",
+            }}
+          />
+        </div>
 
-      {/* Client list */}
-      <div className="d-flex flex-column flex-grow-1 overflow-auto px-2">
-        <span className="fw-semibold d-block mb-2">Members</span>
-        {clients.map((client) => (
-          <Client key={client.socketId} username={client.username} />
-        ))}
-      </div>
+        {/* Members List */}
+        <div
+          className="flex-grow-1 overflow-auto px-3 py-2"
+          style={{ fontSize: "0.9rem" }}
+        >
+          <div className="fw-semibold mb-2 text-secondary text-uppercase">
+            Members
+          </div>
+          <div className="d-flex flex-column gap-2">
+            {clients.map((client) => (
+              <Client key={client.socketId} username={client.username} />
+            ))}
+          </div>
+        </div>
 
-      <hr className="border-secondary" />
+        {/* Sidebar Buttons */}
+        <div className="border-top border-secondary p-3">
+          <button
+            onClick={copyRoomId}
+            className="btn btn-outline-light w-100 mb-2"
+            style={{
+              borderRadius: "6px",
+              fontWeight: "500",
+              fontSize: "0.9rem",
+            }}
+          >
+            Copy Room ID
+          </button>
+          <button
+            onClick={leaveRoom}
+            className="btn btn-danger w-100"
+            style={{ borderRadius: "6px", fontWeight: "500" }}
+          >
+            Leave Room
+          </button>
+        </div>
+      </aside>
 
-      {/* Buttons */}
-      <div className="mt-auto mb-3 px-2">
-        <button onClick={copyRoomId} className="btn btn-outline-light w-100 mb-2">
-          Copy Room ID
-        </button>
-        <button onClick={leaveRoom} className="btn btn-danger w-100">
-          Leave Room
-        </button>
-      </div>
-    </div>
-
-    {/* Main panel */}
-    <div className="col-md-10 text-light d-flex flex-column p-0">
-      {/* TopBar */}
-      <TopBar
-        language={language}
-        setLanguage={setLanguage}
-        runCode={runCode}
-      />
-
-      {/* Editor Area */}
-      <div className="d-flex flex-row flex-grow-1">
-        <div className="d-flex flex-column flex-fill border-start" style={{ minWidth: 0 }}>
+      {/* Editor Panel */}
+      <main className="flex-grow-1 d-flex flex-column" style={{ minWidth: 0 }}>
+        <div
+          className="flex-grow-1 d-flex flex-column border-start"
+          style={{
+            borderColor: "#30363d",
+            backgroundColor: "#0d1117",
+            overflow: "hidden",
+          }}
+        >
           <Editor
             socketRef={socketRef}
             roomId={`${roomId}`}
             onCodeChange={setCode}
             output={output}
             outputVisible={outputVisible}
+            setOutputVisible={setOutputVisible}
           />
         </div>
-      </div>
+      </main>
     </div>
   </div>
-</div>
-)
+);
 }
 
 export default EditorPage;
