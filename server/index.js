@@ -41,25 +41,60 @@ const getAllConnectedClients = (roomId) => {
     })
   );
 };
+roomAdminMap={};
 
 // ---------------------- SOCKET.IO LOGIC ----------------------
 io.on("connection", (socket) => {
-  console.log(`✅ User connected: ${socket.id}`);
+  console.log(` User connected: ${socket.id}`);
 
   // Join room
   socket.on("join", ({ roomId, username }) => {
     userSocketMap[socket.id] = username;
     socket.join(roomId);
 
+    const room = io.sockets.adapter.rooms.get(roomId);
+    if (!roomAdminMap[roomId]) {
+      roomAdminMap[roomId] = [];
+    }
+    
+    if (room && room.size === 1) {
+      roomAdminMap[roomId].push(socket.id);
+      console.log(` ${username} is now admin of room ${roomId}`);
+    }
+
     const clients = getAllConnectedClients(roomId);
 
+    // Notify all clients in the room
     clients.forEach(({ socketId }) => {
       io.to(socketId).emit("joined", {
         clients,
         username,
         socketId: socket.id,
+         adminIds: Array.isArray(roomAdminMap[roomId]) ? roomAdminMap[roomId] : [],
       });
     });
+  });
+  //Handle admin update
+  
+ socket.on("update-admin", ({ roomId, socketId }) => {
+    if (!roomAdminMap[roomId]) roomAdminMap[roomId] = [];
+
+    // Only admins can promote others
+    if (roomAdminMap[roomId].includes(socket.id)) {
+      if (!roomAdminMap[roomId].includes(socketId)) {
+        roomAdminMap[roomId].push(socketId);
+        console.log(`${socketId} added as admin in room ${roomId}`);
+      }
+
+      const clients = getAllConnectedClients(roomId);
+
+      // Emit updated admin list to all clients
+      clients.forEach(({ socketId: clientId }) => {
+        io.to(clientId).emit("admin-updated", {
+          adminIds: roomAdminMap[roomId],
+        });
+      });
+    }
   });
 
   // Real-time code change
@@ -87,7 +122,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log(`❌ User disconnected: ${socket.id}`);
+    console.log(` User disconnected: ${socket.id}`);
   });
   socket.on("Complile-and-run", async({ language, code, roomId,version })=>{
     console.log("Received code for execution:", { language, code, roomId,version });
@@ -106,4 +141,4 @@ io.on("connection", (socket) => {
 
 // ---------------------- START SERVER ----------------------
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server running on port ${PORT}`));

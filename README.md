@@ -36,6 +36,19 @@ Prerequisites:
 ---
 
 ## Important files & symbols
+-Socket Symbols used
+  JOIN: "join"
+  JOINED: "joined"
+  DISCONNECTED: "disconnected"
+  CODE_CHANGE: "code-change"
+  SYNC_CODE: "sync-code"
+  LEAVE: "leave"
+  LANGUAGE_CHANGE: "language-change"
+  Complile-and-run:"Api-Call"
+  code-output:"Set output"
+
+
+
 
 - Server entry: [server/index.js](server/index.js) — handles Socket.IO events and forwards code execution requests to the Piston API.
   - Contains the socket event constants: [`ACTIONS`](server/index.js)
