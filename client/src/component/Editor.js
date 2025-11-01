@@ -9,6 +9,7 @@ import { useState } from "react";
 // Import addons
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
+import "./Editor.css";
 
 
 // Import modes
