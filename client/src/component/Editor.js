@@ -10,6 +10,9 @@ import { useState } from "react";
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
 import "./Editor.css";
+import "codemirror/addon/hint/show-hint";
+import "codemirror/addon/hint/show-hint.css";
+
 
 
 // Import modes
@@ -30,6 +33,7 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
       autoCloseTags: true,
       autoCloseBrackets: true,
       lineNumbers: true,
+      extraKeys: { "Ctrl-Space": "autocomplete" },
      
     });
 
@@ -40,24 +44,54 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
     if (savedCode) {
       editor.setValue(savedCode);
     }
+    let typingTimer = null;
+
+editor.on("keyup", (cm, event) => {
+  const triggerKeys = [" ", ".", "Enter"];
+
+  if (!triggerKeys.includes(event.key)) return;
+
+  clearTimeout(typingTimer);
+
+  typingTimer = setTimeout(() => {
+    showLocalSuggestion(cm);
+  }, 500);
+});
+
 
     editor.on("change", (instance, changes) => {
+      console.log("Editor content changed");
       const { origin } = changes;
       const code = instance.getValue();
       onCodeChange(code);
       localStorage.setItem(`code_${roomId}`, code);
-
+      console.log("Origin of change:", code);
       if (origin !== "setValue") {
-        socketRef.current.emit("code-change", { roomId, code });
+      socketRef.current.emit("code-change", { roomId, code });
       }
     });
   }
 }, [roomId]);
+const showLocalSuggestion = (cm) => {
+  CodeMirror.showHint(cm, () => {
+    return {
+      from: cm.getCursor(),
+      to: cm.getCursor(),
+      list: [
+        "console.log();",
+        "function myFunction() {\n\n}",
+        "if () {\n\n}",
+      ],
+    };
+  }, { completeSingle: false });
+};
+
 
 useEffect(() => {
   if (!socketRef.current || !editorRef.current) return;
 
   const handleCodeChange = ({ code }) => {
+    console.log("Received code change:", code);
     if (code !== null && code !== undefined) {
       const editor = editorRef.current;
       if (editor && code !== editor.getValue()) {

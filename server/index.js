@@ -61,7 +61,7 @@ io.on("connection", (socket) => {
       roomAdminMap[roomId].push(socket.id);
       console.log(` ${username} is now admin of room ${roomId}`);
     }
-
+    
     const clients = getAllConnectedClients(roomId);
 
     // Notify all clients in the room
