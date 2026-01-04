@@ -139,11 +139,9 @@ io.on("connection", (socket) => {
   console.log("Execution response:", response.data.run.output);
   io.to(roomId).emit("code-output", response.data.run.output);
 
-} );
-
+});
 });
 //--Piston Api code execution logic//
-
 // ---------------------- START SERVER ----------------------
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
