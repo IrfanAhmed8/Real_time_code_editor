@@ -80,7 +80,7 @@ editor.on("keyup", (cm, event) => {
 }, [roomId]);
 const fetchGeminiSuggestion = async (code) => {
   try {
-    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}api/gemini/suggest`, {
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gemini/suggest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ code }),
