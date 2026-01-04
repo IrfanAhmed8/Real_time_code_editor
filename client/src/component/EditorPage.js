@@ -25,7 +25,22 @@ function EditorPage() {
   const [outputVisible, setOutputVisible] = useState(false);
   const [version, setVersion] = useState("*");
   const [isCooldown, setIsCooldown] = useState(false);
-  
+  const COLORS = {
+  bgApp: "#0b0f14",
+  bgSurface: "#020617",
+  bgPanel: "#0f172a",
+
+  border: "#1f2937",
+
+  textPrimary: "#e5e7eb",
+  textSecondary: "#9ca3af",
+
+  accent: "#22c55e",
+  accentSoft: "rgba(34,197,94,0.15)",
+
+  danger: "#ef4444",
+};
+
 
   // Update codeRef whenever code changes
   useEffect(() => {
@@ -163,158 +178,106 @@ return (
     <div className="flex-grow-1 d-flex" style={{ minHeight: 0 }}>
       {/* Sidebar */}
      <aside
-  className="d-flex flex-column border-end shadow-sm"
   style={{
     width: "260px",
-    backgroundColor: "#0d1117",
-    borderColor: "#30363d",
-    color: "#c9d1d9",
+    background: COLORS.bgSurface,
+    borderRight: `1px solid ${COLORS.border}`,
+    display: "flex",
+    flexDirection: "column",
   }}
 >
-  {/* Logo */}
-  <div className="text-center py-3 border-bottom border-secondary">
-    <img
-      src="/images/logo.png"
-      alt="Logo"
-      className="img-fluid"
-      style={{
-        maxWidth: "110px",
-        filter: "drop-shadow(0 0 6px #00ff88cc)",
-      }}
-    />
-  </div>
-
-  {/* Members List */}
+  {/* Brand */}
   <div
-    className="flex-grow-1 overflow-auto px-3 py-3"
-    style={{ fontSize: "0.9rem" }}
+    style={{
+      height: "64px",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      borderBottom: `1px solid ${COLORS.border}`,
+    }}
   >
-    <div
-      className="fw-semibold mb-3 text-secondary text-uppercase"
-      style={{ letterSpacing: "1px" }}
-    >
-      Members
-    </div>
-
-    <div className="d-flex flex-column gap-3">
-      {clients.map((client) => (
-        <div
-          key={client.socketId}
-          className="d-flex align-items-center justify-content-between px-3 py-2 rounded-3 border position-relative"
-          style={{
-            backgroundColor:
-              adminIds.includes(client.socketId) ? "#161b22" : "transparent",
-            borderColor:
-              adminIds.includes(client.socketId) ? "#238636" : "#30363d",
-            transition: "background 0.2s ease",
-          }}
-        >
-          {/* Username and Badge */}
-          <div className="d-flex align-items-center gap-2">
-            <Client username={client.username} />
-            {adminIds.includes(client.socketId) && (
-              <span
-                className="badge"
-                style={{
-                  backgroundColor: "#238636",
-                  color: "#fff",
-                  fontSize: "0.7rem",
-                }}
-              >
-                Admin
-              </span>
-            )}
-          </div>
-
-          {/* Admin Controls */}
-          {adminIds.includes(socketRef.current?.id) &&
-            !adminIds.includes(client.socketId) && (
-              <div className="d-flex flex-column align-items-right gap-2">
-                <button
-                  className="btn btn-sm text-light border-0 px-2 py-1"
-                  style={{
-                    backgroundColor: "#30363d",
-                    borderRadius: "6px",
-                    fontSize: "0.8rem",
-                    transition: "all 0.2s ease",
-                  }}
-                  title="Make Admin"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#238636")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#30363d")
-                  }
-                  onClick={() => UpdateAdmin(client.socketId)} 
-                >
-                  
-                  👑 Admin
-                </button>
-                <button
-                  className="btn btn-sm text-light border-0 px-2 py-1"
-                  style={{
-                    backgroundColor: "#30363d",
-                    borderRadius: "6px",
-                    fontSize: "0.8rem",
-                    transition: "all 0.2s ease",
-                  }}
-                  title="Enable Write"
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#2ea043")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#30363d")
-                  }
-                   
-                >
-                  ✍️ Write
-                </button>
-              </div>
-            )}
-        </div>
-      ))}
-    </div>
+    <img src="/images/logo.png" style={{ width: "48px" }} />
   </div>
 
-  {/* Sidebar Footer Buttons */}
-  <div className="border-top border-secondary p-3">
-    <button
-      onClick={copyRoomId}
-      className="btn w-100 mb-2"
+  {/* Members */}
+  <div className="flex-grow-1 px-3 py-3">
+    <div
       style={{
-        border: "1px solid #00ff88",
-        color: "#00ff88",
-        borderRadius: "6px",
-        fontWeight: "500",
-        fontSize: "0.9rem",
-        backgroundColor: "transparent",
-        transition: "all 0.3s ease",
+        fontSize: "0.75rem",
+        color: COLORS.textSecondary,
+        marginBottom: "12px",
+        letterSpacing: "1px",
       }}
-      onMouseOver={(e) => {
-        e.currentTarget.style.backgroundColor = "#00ff8833";
-      }}
-      onMouseOut={(e) => {
-        e.currentTarget.style.backgroundColor = "transparent";
+    >
+      MEMBERS
+    </div>
+
+    {clients.map((client) => (
+      <div
+        key={client.socketId}
+        style={{
+          padding: "8px 10px",
+          borderRadius: "8px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: "6px",
+          background: adminIds.includes(client.socketId)
+            ? "rgba(34,197,94,0.08)"
+            : "transparent",
+        }}
+      >
+        <Client username={client.username} />
+
+        {adminIds.includes(client.socketId) && (
+          <span
+            style={{
+              fontSize: "0.65rem",
+              color: COLORS.accent,
+            }}
+          >
+            Admin
+          </span>
+        )}
+      </div>
+    ))}
+  </div>
+
+  {/* Footer */}
+  <div
+    style={{
+      padding: "12px",
+      borderTop: `1px solid ${COLORS.border}`,
+    }}
+  >
+    <button
+      className="w-100 mb-2"
+      style={{
+        background: "transparent",
+        border: `1px solid ${COLORS.border}`,
+        color: COLORS.textSecondary,
+        borderRadius: "8px",
+        padding: "8px",
       }}
     >
       Copy Room ID
     </button>
 
     <button
-      onClick={leaveRoom}
-      className="btn btn-danger w-100"
+      className="w-100"
       style={{
-        borderRadius: "6px",
-        fontWeight: "500",
-        fontSize: "0.9rem",
-        backgroundColor: "#da3633",
+        background: COLORS.danger,
         border: "none",
+        borderRadius: "8px",
+        padding: "8px",
+        color: "#fff",
       }}
     >
       Leave Room
     </button>
   </div>
 </aside>
+
 
 
       {/* Editor Panel */}

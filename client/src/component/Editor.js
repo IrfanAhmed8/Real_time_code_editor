@@ -4,7 +4,6 @@ import { ACTIONS } from "../Action";
 import axios from "axios";
 // Import CSS first
 import "codemirror/lib/codemirror.css";
-import "codemirror/theme/dracula.css";
 import { useState } from "react";
 // Import addons
 import "codemirror/addon/edit/closetag";
@@ -12,7 +11,8 @@ import "codemirror/addon/edit/closebrackets";
 import "./Editor.css";
 import "codemirror/addon/hint/show-hint";
 import "codemirror/addon/hint/show-hint.css";
-
+import "./EditorTheme.css";
+import "codemirror/addon/selection/active-line";
 
 
 // Import modes
@@ -22,6 +22,7 @@ import { X } from "lucide-react";
 
 function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutputVisible}) {
   const textareaRef = useRef(null);
+  let typingTimer = null;
   //editorref is used to detect change on the ediotr
   const editorRef = useRef(null);
   useEffect(() => {
@@ -29,7 +30,8 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
   if (textareaRef.current) {
     const editor = CodeMirror.fromTextArea(textareaRef.current, {
       mode: { name: "javascript", json: true },
-      theme: "dracula",
+      theme: "codemate",
+      styleActiveLine: true,
       autoCloseTags: true,
       autoCloseBrackets: true,
       lineNumbers: true,
@@ -44,17 +46,21 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
     if (savedCode) {
       editor.setValue(savedCode);
     }
-    let typingTimer = null;
+    
 
 editor.on("keyup", (cm, event) => {
   const triggerKeys = [" ", ".", "Enter"];
-
+  console.log("Key pressed:", event.key);
   if (!triggerKeys.includes(event.key)) return;
 
   clearTimeout(typingTimer);
 
-  typingTimer = setTimeout(() => {
-    showLocalSuggestion(cm);
+  typingTimer = setTimeout(async () => {
+    const code = cm.getValue();
+    console.log("Fetching Gemini suggestion for code:", code);
+    const text = await fetchGeminiSuggestion(code);
+    console.log("Gemini suggestion received:", text);
+    showGeminiSuggestion(cm, text);
   }, 500);
 });
 
@@ -72,15 +78,29 @@ editor.on("keyup", (cm, event) => {
     });
   }
 }, [roomId]);
-const showLocalSuggestion = (cm) => {
+const fetchGeminiSuggestion = async (code) => {
+  try {
+    const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}api/gemini/suggest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code }),
+    });
+
+    const data = await res.json();
+    return data.suggestion;
+  } catch (err) {
+    console.error("Gemini fetch error:", err);
+    return "";
+  }
+};
+
+const showGeminiSuggestion = (cm,text) => {
+   if (!text || !text.trim()) return;
   CodeMirror.showHint(cm, () => {
     return {
       from: cm.getCursor(),
       to: cm.getCursor(),
-      list: [
-        "console.log();",
-        "function myFunction() {\n\n}",
-        "if () {\n\n}",
+      list: [text
       ],
     };
   }, { completeSingle: false });
@@ -122,14 +142,13 @@ useEffect(() => {
     >
       {/* ===== Code Editor ===== */}
       <div
-        className="flex-grow-1 position-relative"
-        style={{
-          background: "#1e1e1e",
-          borderTop: "1px solid #2e2e2e",
-          borderBottom: outputVisible ? "2px solid #2e2e2e" : "none",
-          padding: "8px",
-        }}
-      >
+  className="flex-grow-1 position-relative"
+  style={{
+    background: "#020617",
+    borderBottom: outputVisible ? "1px solid #1f2937" : "none",
+  }}
+>
+
         <textarea
           ref={textareaRef}
           id="realTimeEditor"
@@ -149,59 +168,58 @@ useEffect(() => {
 
       {/* ===== Output Console ===== */}
       {outputVisible && (
-        <div
-          className="output-console position-relative"
-          style={{
-            background: "#161b22",
-            color: "#c9d1d9",
-            borderTop: "1px solid #2e2e2e",
-            padding: "12px 16px 10px 16px",
-            fontFamily: "'Fira Code', monospace",
-            fontSize: "0.9rem",
-            height: "200px",
-            overflowY: "auto",
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {/* Close Button */}
-           <div
-            className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom"
-            style={{ borderColor: "#2e2e2e" }}
-          >
-            <span className="text-success fw-semibold">▶ Output</span>
-            <button
-              onClick={() => setOutputVisible(false)}
-              className="btn btn-sm p-1"
-              style={{
-                background: "transparent",
-                border: "none",
-                color: "#8b949e",
-                cursor: "pointer",
-                transition: "color 0.2s ease",
-              }}
-              onMouseOver={(e) => (e.currentTarget.style.color = "#ff6b6b")}
-              onMouseOut={(e) => (e.currentTarget.style.color = "#8b949e")}
-              aria-label="Close Output"
-            >
-              {typeof X === "function" ? <X size={16} /> : "×"}
-            </button>
-          </div>
+  <div
+    style={{
+      height: "200px",
+      background: "#020617",
+      borderTop: "1px solid #1f2937",
+      display: "flex",
+      flexDirection: "column",
+    }}
+  >
+    {/* Header */}
+    <div
+      style={{
+        height: "34px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: "0 12px",
+        borderBottom: "1px solid #1f2937",
+        fontSize: "0.75rem",
+        color: "#22c55e",
+      }}
+    >
+      ▶ Output
+      <button
+        onClick={() => setOutputVisible(false)}
+        style={{
+          background: "transparent",
+          border: "none",
+          color: "#6b7280",
+          cursor: "pointer",
+        }}
+      >
+        <X size={14} />
+      </button>
+    </div>
 
+    {/* Body */}
+    <pre
+      style={{
+        flexGrow: 1,
+        margin: 0,
+        padding: "12px",
+        fontSize: "0.85rem",
+        color: output.includes("Error") ? "#ef4444" : "#e5e7eb",
+        overflowY: "auto",
+      }}
+    >
+      {output || "No output yet…"}
+    </pre>
+  </div>
+)}
 
-          {/* Output Label */}
-          
-
-          {/* Output Text */}
-          <pre
-            style={{
-              margin: 0,
-              color: output.trim().includes("Error") ? "#ff5555" : "#f0f6fc",
-            }}
-          >
-            {output.trim() || "No output yet..."}
-          </pre>
-        </div>
-      )}
     </div>
   );
 }

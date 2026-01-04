@@ -8,6 +8,14 @@ function Home() {
   const [username,setUsername]=useState("");
   const [isAdmin,setIsAdmin]=useState(false);
   const navigate = useNavigate();
+  const inputStyle = {
+  backgroundColor: "#0f1624",
+  border: "1px solid #1f2937",
+  borderRadius: "10px",
+  padding: "0.75rem 1rem",
+  color: "#e5e7eb",
+};
+
   const generateRoomid =(e)=>{
     e.preventDefault();
     const id=uuid();
@@ -35,121 +43,104 @@ function Home() {
 
     
   }
-  return (
+ return (
   <div
-    className="d-flex align-items-center justify-content-center min-vh-100 bg-dark text-light"
+    className="d-flex align-items-center justify-content-center min-vh-100"
     style={{
-      background: "radial-gradient(circle at top, #10141a 0%, #0b0f13 100%)",
+      background:
+        "radial-gradient(1200px circle at top, #111827 0%, #0b0f14 60%)",
     }}
   >
     <div
-      className="card border-0 shadow-lg p-5 text-center"
+      className="shadow-lg text-center"
       style={{
-        background: "rgba(255, 255, 255, 0.05)",
-        backdropFilter: "blur(10px)",
-        borderRadius: "16px",
         width: "100%",
-        maxWidth: "400px",
+        maxWidth: "420px",
+        background: "linear-gradient(180deg, #111827, #0b1220)",
+        borderRadius: "18px",
+        padding: "3rem 2.5rem",
+        border: "1px solid #1f2937",
       }}
     >
       {/* Logo */}
-      <img
-        src="/images/logo.png"
-        alt="Logo"
-        className="img-fluid mx-auto d-block mb-3"
+      <div
         style={{
-          maxWidth: "80px",
-          filter: "drop-shadow(0 0 6px #00ff88aa)",
+          width: "64px",
+          height: "64px",
+          margin: "0 auto 1.5rem",
+          borderRadius: "14px",
+          background: "rgba(34,197,94,0.08)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
-      />
+      >
+        <img
+          src="/images/logo.png"
+          alt="Logo"
+          style={{ width: "36px" }}
+        />
+      </div>
 
       {/* Title */}
-      <h3 className="fw-bold text-light mb-2">Join a Coding Room</h3>
+      <h3 className="fw-semibold text-light mb-2">
+        Join a Coding Room
+      </h3>
       <p className="text-secondary small mb-4">
-        Collaborate, code, and create in real time.
+        Real-time collaboration for focused developers.
       </p>
 
       {/* Room ID */}
-      <div className="form-group mb-3">
-        <input
-          value={roomId}
-          onChange={(e) => setRoomId(e.target.value)}
-          type="text"
-          className="form-control text-light border-0 py-3"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 0.08)",
-            transition: "all 0.2s ease",
-          }}
-          placeholder="🔑 Room ID"
-          onFocus={(e) =>
-            (e.target.style.boxShadow = "0 0 0 2px #00ff8899 inset")
-          }
-          onBlur={(e) => (e.target.style.boxShadow = "none")}
-        />
-      </div>
+      <input
+        value={roomId}
+        onChange={(e) => setRoomId(e.target.value)}
+        placeholder="Room ID"
+        className="form-control mb-3"
+        style={inputStyle}
+      />
 
       {/* Username */}
-      <div className="form-group mb-4">
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="form-control text-light border-0 py-3"
-          style={{
-            borderRadius: "8px",
-            backgroundColor: "rgba(255, 255, 255, 0.08)",
-            transition: "all 0.2s ease",
-          }}
-          placeholder="👨‍💻 Username"
-          onFocus={(e) =>
-            (e.target.style.boxShadow = "0 0 0 2px #00ff8899 inset")
-          }
-          onBlur={(e) => (e.target.style.boxShadow = "none")}
-        />
-      </div>
+      <input
+        value={username}
+        onChange={(e) => setUsername(e.target.value)}
+        placeholder="Username"
+        className="form-control mb-4"
+        style={inputStyle}
+      />
 
-     
-      
-
-      {/* Join Button */}
+      {/* CTA */}
       <button
         onClick={joinRoom}
-        className="btn w-100 py-3 fw-semibold"
+        className="w-100 fw-semibold"
         style={{
+          padding: "0.85rem",
           borderRadius: "10px",
-          background:
-            "linear-gradient(90deg, #00ff88 0%, #00b86b 100%)",
+          background: "#22c55e",
           border: "none",
-          color: "#0b0f13",
-          boxShadow: "0 0 12px #00ff8855",
-          transition: "transform 0.2s ease, box-shadow 0.2s ease",
+          color: "#052e16",
+          boxShadow: "0 6px 20px rgba(34,197,94,0.25)",
+          transition: "all 0.2s ease",
         }}
-        onMouseOver={(e) => {
-          e.currentTarget.style.transform = "translateY(-2px)";
-          e.currentTarget.style.boxShadow = "0 0 16px #00ff88aa";
-        }}
-        onMouseOut={(e) => {
-          e.currentTarget.style.transform = "translateY(0)";
-          e.currentTarget.style.boxShadow = "0 0 12px #00ff8855";
-        }}
+        onMouseEnter={(e) =>
+          (e.currentTarget.style.transform = "translateY(-1px)")
+        }
+        onMouseLeave={(e) =>
+          (e.currentTarget.style.transform = "translateY(0)")
+        }
       >
-         Join Room
+        Join Room →
       </button>
 
-      {/* Create New Room */}
-      <p className="mt-4 mb-0 text-secondary small">
+      {/* Create */}
+      <p className="mt-4 text-secondary small">
         Don’t have a room?{" "}
         <span
-          className="text-success fw-semibold"
-          style={{
-            cursor: "pointer",
-            textDecoration: "underline",
-            transition: "color 0.2s ease",
-          }}
-          onMouseOver={(e) => (e.target.style.color = "#00ff88")}
-          onMouseOut={(e) => (e.target.style.color = "")}
           onClick={generateRoomid}
+          style={{
+            color: "#22c55e",
+            cursor: "pointer",
+            fontWeight: 500,
+          }}
         >
           Create one
         </span>
@@ -157,6 +148,7 @@ function Home() {
     </div>
   </div>
 );
+
 
 
 }

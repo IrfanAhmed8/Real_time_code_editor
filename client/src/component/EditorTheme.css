@@ -1,0 +1,52 @@
+/* ===== Base Editor ===== */
+.cm-s-codemate.CodeMirror {
+  background: #020617;
+  color: #e5e7eb;
+  font-family: "Fira Code", monospace;
+  font-size: 14px;
+}
+
+/* ===== Cursor ===== */
+.cm-s-codemate .CodeMirror-cursor {
+  border-left: 2px solid #22c55e;
+}
+
+/* ===== Line Numbers ===== */
+.cm-s-codemate .CodeMirror-gutters {
+  background: #020617;
+  border-right: 1px solid #1f2937;
+}
+
+.cm-s-codemate .CodeMirror-linenumber {
+  color: #475569;
+}
+
+/* ===== Active Line ===== */
+.cm-s-codemate .CodeMirror-activeline-background {
+  background: rgba(34, 197, 94, 0.06);
+}
+
+/* ===== Selection ===== */
+.cm-s-codemate .CodeMirror-selected {
+  background: rgba(34, 197, 94, 0.15);
+}
+
+/* ===== Scrollbar ===== */
+.CodeMirror-scrollbar-filler {
+  background: #020617;
+}
+
+/* ===== Autocomplete ===== */
+.CodeMirror-hints {
+  background: #020617;
+  border: 1px solid #1f2937;
+  font-family: "Fira Code", monospace;
+}
+
+.CodeMirror-hint {
+  color: #e5e7eb;
+}
+
+.CodeMirror-hint-active {
+  background: rgba(34, 197, 94, 0.15);
+}
