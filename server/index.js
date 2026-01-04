@@ -1,21 +1,26 @@
-const express = require("express");
+import dotenv from "dotenv";
+dotenv.config();
+
+console.log("GEMINI KEY EXISTS:", !!process.env.GEMINI_API_KEY);
+
+import express from "express";
+import cors from "cors";
+import http from "http";
+import { Server } from "socket.io";
+import { exec } from "child_process";
+import fs from "fs";
+import axios from "axios";
+import geminiRouter from "./gemini.js";
 const app = express();
-const cors = require("cors");
-const http = require("http");
-const { Server } = require("socket.io");
-const { exec } = require("child_process");
-const fs = require("fs");
-const axios = require("axios");
-
-
 app.use(cors());
 app.use(express.json());
+app.use("/api/gemini", geminiRouter);
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://192.168.0.100:3000", "http://localhost:3000"],
+    origin: "*",
     methods: ["GET", "POST"],
   },
 });
@@ -41,7 +46,7 @@ const getAllConnectedClients = (roomId) => {
     })
   );
 };
-roomAdminMap={};
+const roomAdminMap={};
 
 // ---------------------- SOCKET.IO LOGIC ----------------------
 io.on("connection", (socket) => {

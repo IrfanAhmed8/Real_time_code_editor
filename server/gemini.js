@@ -3,29 +3,25 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const router = express.Router();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
 router.post("/suggest", async (req, res) => {
   try {
-    let { code } = req.body;
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-    if (!code || code.trim().length === 0) {
-      return res.json({ suggestion: "" });
-    }
+    let code = req.body?.code || "";
+    if (!code.trim()) return res.json({ suggestion: "" });
 
-    // 🔐 Limit context size (VERY IMPORTANT)
     if (code.length > 8000) {
       code = code.slice(-8000);
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-pro",
+      model: "models/gemini-2.5-flash",
     });
 
     const prompt = `
 You are a professional JavaScript code completion assistant.
 Continue the code logically.
-Return ONLY valid code. No explanations.
+Return ONLY valid code.
 
 CODE:
 ${code}
@@ -36,7 +32,7 @@ ${code}
 
     res.json({ suggestion: suggestion.trim() });
   } catch (error) {
-    console.error("Gemini error:", error);
+    console.error("Gemini SDK error:", error);
     res.status(500).json({ suggestion: "" });
   }
 });
