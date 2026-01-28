@@ -1,0 +1,29 @@
+/* ===== Yjs Remote Cursor Styles ===== */
+
+/* Remote cursor caret */
+.yRemoteSelectionCaret {
+  position: relative;
+  border-left: 2px solid;
+  margin-left: -1px;
+  margin-right: -1px;
+}
+
+/* Cursor name label */
+.yRemoteSelectionCaret::after {
+  content: attr(data-user);
+  position: absolute;
+  top: -1.4em;
+  left: 0;
+  font-size: 11px;
+  background-color: inherit;
+  color: white;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Remote text selection */
+.yRemoteSelection {
+  background-color: rgba(0, 0, 0, 0.15);
+}

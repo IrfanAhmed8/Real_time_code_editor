@@ -13,7 +13,10 @@ import "codemirror/addon/hint/show-hint";
 import "codemirror/addon/hint/show-hint.css";
 import "./EditorTheme.css";
 import "codemirror/addon/selection/active-line";
+import * as Y from "yjs";
+import { WebsocketProvider } from "y-websocket";
 
+import { CodemirrorBinding } from "y-codemirror";
 
 // Import modes
 import "codemirror/mode/javascript/javascript";
@@ -25,59 +28,76 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
   let typingTimer = null;
   //editorref is used to detect change on the ediotr
   const editorRef = useRef(null);
-  useEffect(() => {
-  
-  if (textareaRef.current) {
-    const editor = CodeMirror.fromTextArea(textareaRef.current, {
-      mode: { name: "javascript", json: true },
-      theme: "codemate",
-      styleActiveLine: true,
-      autoCloseTags: true,
-      autoCloseBrackets: true,
-      lineNumbers: true,
-      extraKeys: { "Ctrl-Space": "autocomplete" },
-     
-    });
+ useEffect(() => {
+  if (!textareaRef.current) return;
 
-    editor.setSize("100%", "100%");
-    editorRef.current = editor;
+  const editor = CodeMirror.fromTextArea(textareaRef.current, {
+    mode: { name: "javascript", json: true },
+    theme: "codemate",
+    styleActiveLine: true,
+    autoCloseTags: true,
+    autoCloseBrackets: true,
+    lineNumbers: true,
+    extraKeys: { "Ctrl-Space": "autocomplete" },
+  });
 
-    const savedCode = localStorage.getItem(`code_${roomId}`);
-    if (savedCode) {
-      editor.setValue(savedCode);
-    }
-    
+  editor.setSize("100%", "100%");
+  editorRef.current = editor;
 
-editor.on("keyup", (cm, event) => {
-  const triggerKeys = [" ", ".", "Enter"];
-  console.log("Key pressed:", event.key);
-  if (!triggerKeys.includes(event.key)) return;
+  // ---- YJS SETUP ----
+  const ydoc = new Y.Doc();
+  const provider = new WebsocketProvider(
+    "ws://localhost:1234",
+    roomId,
+    ydoc
+  );
 
-  clearTimeout(typingTimer);
+  const yText = ydoc.getText("codemirror");
 
-  typingTimer = setTimeout(async () => {
-    const code = cm.getValue();
-    console.log("Fetching Gemini suggestion for code:", code);
-    const text = await fetchGeminiSuggestion(code);
-    console.log("Gemini suggestion received:", text);
-    showGeminiSuggestion(cm, text);
-  }, 500);
-});
+  const binding = new CodemirrorBinding(
+    yText,
+    editor,
+    provider.awareness
+  );
 
+  // Optional awareness (recommended)
+  provider.awareness.setLocalStateField("user", {
+    name: "Anonymous", // replace with username
+     color: getRandomColor(),
+  });
 
-    editor.on("change", (instance, changes) => {
-      console.log("Editor content changed");
-      const { origin } = changes;
-      const code = instance.getValue();
-      onCodeChange(code);
-      localStorage.setItem(`code_${roomId}`, code);
-      console.log("Origin of change:", code);
-      if (origin !== "setValue") {
-      socketRef.current.emit("code-change", { roomId, code });
-      }
-    });
-  }
+  // ---- AI KEYUP LOGIC (SAFE) ----
+  let typingTimer;
+
+  editor.on("keyup", (cm, event) => {
+    const triggerKeys = [" ", ".", "Enter"];
+    if (!triggerKeys.includes(event.key)) return;
+
+    clearTimeout(typingTimer);
+
+    typingTimer = setTimeout(async () => {
+      const code = cm.getValue();
+      const text = await fetchGeminiSuggestion(code);
+      showGeminiSuggestion(cm, text);
+    }, 500);
+  });
+
+  // ---- CLEANUP ----
+  return () => {
+    binding.destroy();
+    provider.destroy();
+    ydoc.destroy();
+    editor.toTextArea();
+  };
 }, [roomId]);
+function getRandomColor() {
+  const colors = [
+    "#e63946", "#f4a261", "#2a9d8f",
+    "#457b9d", "#9b5de5", "#06d6a0"
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
 const fetchGeminiSuggestion = async (code) => {
   try {
     const res = await fetch(`${process.env.REACT_APP_BACKEND_URL}/api/gemini/suggest`, {

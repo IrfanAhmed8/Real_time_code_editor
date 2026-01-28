@@ -225,7 +225,7 @@ return (
           background: adminIds.includes(client.socketId)
             ? "rgba(34,197,94,0.08)"
             : "transparent",
-        }}
+    }}
       >
         <Client username={client.username} />
 
@@ -259,6 +259,7 @@ return (
         borderRadius: "8px",
         padding: "8px",
       }}
+      onClick={copyRoomId}
     >
       Copy Room ID
     </button>
@@ -272,6 +273,7 @@ return (
         padding: "8px",
         color: "#fff",
       }}
+      onClick={leaveRoom}
     >
       Leave Room
     </button>
