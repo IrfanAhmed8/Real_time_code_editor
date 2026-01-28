@@ -126,7 +126,7 @@ const showGeminiSuggestion = (cm,text) => {
   }, { completeSingle: false });
 };
 
-
+// eslint-disable-next-line react-hooks/exhaustive-deps
 useEffect(() => {
   if (!socketRef.current || !editorRef.current) return;
 
