@@ -23,6 +23,8 @@ import { X } from "lucide-react";
 
 
 function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutputVisible}) {
+
+
   const textareaRef = useRef(null);
   //editorref is used to detect change on the ediotr
   const editorRef = useRef(null);
@@ -98,7 +100,7 @@ yText.observe(updateCodeFromYjs);
     ydoc.destroy();
     editor.toTextArea();
   };
-}, [roomId],[onCodeChange]);
+}, [roomId,onCodeChange]);
 function getRandomColor() {
   const colors = [
     "#e63946", "#f4a261", "#2a9d8f",

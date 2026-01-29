@@ -1,8 +1,7 @@
 
 import Editor from "./Editor"
 import Client from "./Client"
-
-
+import { useCallback } from "react";
 import { toast } from 'react-hot-toast';
 import  { useEffect, useRef, useState } from "react";
 import { initSocket } from "../socket";
@@ -114,6 +113,9 @@ function EditorPage() {
       }
     };
   }, [navigate, location.state, roomId]);
+  const onCodeChange = useCallback((code) => {
+  setCode(code);
+  }, []);
 
   if (!location.state) {
     return <Navigate to="/" />;
@@ -128,16 +130,17 @@ function EditorPage() {
     }
   };
 
+
   const leaveRoom = async () => {
     navigate("/");
   };
-  const UpdateAdmin = (targetId) => {
+  /*const UpdateAdmin = (targetId) => {
     toast.success("You have granted write access to the user.");
       socketRef.current.emit("update-admin", {
         roomId,
         socketId: targetId
       });
-    }
+    }*/
   const runCode = () => {
     if (isCooldown) {
       toast.success("Is too many requests. Please wait...  10 seconds cooldown.");
@@ -196,7 +199,7 @@ return (
       borderBottom: `1px solid ${COLORS.border}`,
     }}
   >
-    <img src="/images/logo.png" style={{ width: "48px" }} />
+    <img src="/images/logo.png"alt="" style={{ width: "48px" }} />
   </div>
 
   {/* Members */}
@@ -295,7 +298,7 @@ return (
           <Editor
             socketRef={socketRef}
             roomId={`${roomId}`}
-            onCodeChange={setCode}
+            onCodeChange={onCodeChange}
             output={output}
             outputVisible={outputVisible}
             setOutputVisible={setOutputVisible}
