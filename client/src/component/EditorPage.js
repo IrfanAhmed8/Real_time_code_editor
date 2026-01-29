@@ -2,9 +2,9 @@
 import Editor from "./Editor"
 import Client from "./Client"
 
-import axios from "axios";
+
 import { toast } from 'react-hot-toast';
-import React, { useEffect, useRef, useState } from "react";
+import  { useEffect, useRef, useState } from "react";
 import { initSocket } from "../socket";
 import { useNavigate,useLocation,Navigate } from "react-router-dom";
 import { useParams } from "react-router-dom";

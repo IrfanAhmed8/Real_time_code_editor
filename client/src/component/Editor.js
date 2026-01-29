@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import CodeMirror from "codemirror"; // import main library
-import { ACTIONS } from "../Action";
-import axios from "axios";
+
 // Import CSS first
 import "codemirror/lib/codemirror.css";
-import { useState } from "react";
+
 // Import addons
 import "codemirror/addon/edit/closetag";
 import "codemirror/addon/edit/closebrackets";
@@ -93,12 +92,13 @@ yText.observe(updateCodeFromYjs);
 
   // ---- CLEANUP ----
   return () => {
+    yText.unobserve(updateCodeFromYjs);
     binding.destroy();
     provider.destroy();
     ydoc.destroy();
     editor.toTextArea();
   };
-}, [roomId]);
+}, [roomId],[onCodeChange]);
 function getRandomColor() {
   const colors = [
     "#e63946", "#f4a261", "#2a9d8f",
