@@ -22,7 +22,7 @@ function EditorPage() {
   const [language, setLanguage] = useState("python");
   const [output, setOutput] = useState("");
   const [outputVisible, setOutputVisible] = useState(false);
-  const [version, setVersion] = useState("*");
+  const [version] = useState("*");
   const [isCooldown, setIsCooldown] = useState(false);
   const COLORS = {
   bgApp: "#0b0f14",

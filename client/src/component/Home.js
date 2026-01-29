@@ -6,7 +6,7 @@ import { useNavigate } from "react-router-dom";
 function Home() {
   const [roomId,setRoomId]=useState("");
   const [username,setUsername]=useState("");
-  const [isAdmin,setIsAdmin]=useState(false);
+  
   const navigate = useNavigate();
   const inputStyle = {
   backgroundColor: "#0f1624",
@@ -27,21 +27,11 @@ function Home() {
       toast.error("please fill both input box")
       return;
     }
-    if(!isAdmin){
+    
       navigate(`/EditorPage/${roomId}`,{
         state:  {username},
     });
-    }
-    else {
-    // admin user
-    navigate(`/EditorWithAdmin/${roomId}`, {
-      state: { username },
-    });
-  }
-      
     toast.success("room is created");
-
-    
   }
  return (
   <div
