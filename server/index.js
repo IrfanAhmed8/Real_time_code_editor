@@ -102,18 +102,6 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Real-time code change
-  socket.on("code-change", ({ roomId, code }) => {
-    socket.to(roomId).emit("code-change", { code });
-  });
-
-  // Sync code for new users
-  socket.on("sync-code", ({ socketId, code }) => {
-    io.to(socketId).emit("code-change", { code });
-  });
-
-
-
   // Disconnect
   socket.on("disconnecting", () => {
     const rooms = [...socket.rooms];
