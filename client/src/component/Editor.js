@@ -25,7 +25,6 @@ import { X } from "lucide-react";
 
 function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutputVisible}) {
   const textareaRef = useRef(null);
-  let typingTimer = null;
   //editorref is used to detect change on the ediotr
   const editorRef = useRef(null);
  useEffect(() => {
@@ -40,17 +39,21 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
     lineNumbers: true,
     extraKeys: { "Ctrl-Space": "autocomplete" },
   });
-
+//set the editor value in onCOdeChange
+  
   editor.setSize("100%", "100%");
   editorRef.current = editor;
 
   // ---- YJS SETUP ----
   const ydoc = new Y.Doc();
   const provider = new WebsocketProvider(
-    "ws://localhost:1234",
+    "https://yjs-server-2.onrender.com/",
     roomId,
     ydoc
   );
+provider.on("status", event => {
+  console.log("Yjs status:", event.status); // "connected" | "disconnected"
+});
 
   const yText = ydoc.getText("codemirror");
 
@@ -59,6 +62,12 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
     editor,
     provider.awareness
   );
+  const updateCodeFromYjs = () => {
+  onCodeChange(yText.toString());
+};
+
+onCodeChange(yText.toString());
+yText.observe(updateCodeFromYjs);
 
   // Optional awareness (recommended)
   provider.awareness.setLocalStateField("user", {
@@ -126,27 +135,6 @@ const showGeminiSuggestion = (cm,text) => {
   }, { completeSingle: false });
 };
 
-// eslint-disable-next-line react-hooks/exhaustive-deps
-useEffect(() => {
-  if (!socketRef.current || !editorRef.current) return;
-
-  const handleCodeChange = ({ code }) => {
-    console.log("Received code change:", code);
-    if (code !== null && code !== undefined) {
-      const editor = editorRef.current;
-      if (editor && code !== editor.getValue()) {
-        editor.setValue(code);
-        localStorage.setItem(`code_${roomId}`, code);
-      }
-    }
-  };
-
-  socketRef.current.on("code-change", handleCodeChange);
-
-  return () => {
-    socketRef.current.off("code-change", handleCodeChange);
-  };
-}, [roomId, socketRef.current, editorRef.current]);
 
 
 
