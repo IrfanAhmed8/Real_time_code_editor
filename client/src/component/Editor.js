@@ -47,7 +47,7 @@ function Editor({socketRef, roomId, onCodeChange, outputVisible, output,setOutpu
   // ---- YJS SETUP ----
   const ydoc = new Y.Doc();
   const provider = new WebsocketProvider(
-    "https://yjs-server-2.onrender.com/",
+     process.env.REACT_APP_YJS_WEBSOCKET_ENDPOINT,
     roomId,
     ydoc
   );
